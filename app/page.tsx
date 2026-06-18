@@ -15,6 +15,7 @@ import { MapView } from "@/components/MapView";
 import { Navbar } from "@/components/Navbar";
 import { RecommendationPanel } from "@/components/RecommendationPanel";
 import { ResponsibleAISection } from "@/components/ResponsibleAISection";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { VerificationChecklist } from "@/components/VerificationChecklist";
 import locationsData from "@/data/demo-locations.json";
 import deadZonesData from "@/data/demo-dead-zones.json";
@@ -42,6 +43,7 @@ import type { AIModelChoice, ClimateActionId, DeadZone, LocationRecord, Observat
 const locations = locationsData as LocationRecord[];
 const deadZones = deadZonesData as DeadZone[];
 const observations = observationsData as Observation[];
+const demoMapOrigin = { lat: 37.7749, lng: -122.4194 };
 type ApiStatus = "missing" | "detected" | "connected" | "failed";
 type ThemeChoice = "dark" | "light" | "system";
 
@@ -68,13 +70,19 @@ export default function Home() {
   const logoClicksRef = useRef<number[]>([]);
 
   const filteredDeadZones = useMemo(() => {
-    if (demoMode) {
-      return [...deadZones].sort((a, b) => b.score - a.score);
-    }
+    const sourceDeadZones = demoMode ? deadZones : deadZones.filter((deadZone) => deadZone.selectedActions.includes(selectedAction));
+    const matches = sourceDeadZones.length > 0 ? sourceDeadZones : deadZones;
+    const latOffset = selectedLocation.lat - demoMapOrigin.lat;
+    const lngOffset = selectedLocation.lng - demoMapOrigin.lng;
 
-    const matches = deadZones.filter((deadZone) => deadZone.selectedActions.includes(selectedAction));
-    return (matches.length > 0 ? matches : deadZones).sort((a, b) => b.score - a.score);
-  }, [demoMode, selectedAction]);
+    return matches
+      .map((deadZone) => ({
+        ...deadZone,
+        lat: Number((deadZone.lat + latOffset).toFixed(6)),
+        lng: Number((deadZone.lng + lngOffset).toFixed(6))
+      }))
+      .sort((a, b) => b.score - a.score);
+  }, [demoMode, selectedAction, selectedLocation.lat, selectedLocation.lng]);
 
   const selectedDeadZone = filteredDeadZones.find((deadZone) => deadZone.id === selectedDeadZoneId) ?? filteredDeadZones[0];
   const selectedActionLabel = climateActions.find((action) => action.id === selectedAction)?.label ?? selectedAction;
@@ -369,55 +377,67 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="space-y-5">
+          <div className="mx-auto max-w-5xl space-y-5">
+            <ScrollReveal>
               <LocationSearch
                 locations={locations}
                 selectedLocation={selectedLocation}
                 onSelectLocation={setSelectedLocation}
                 onCustomLocation={handleCustomLocation}
               />
+            </ScrollReveal>
+            <ScrollReveal delay={80}>
               <ActionSelector selectedAction={selectedAction} onSelectAction={setSelectedAction} />
-            </div>
-            <MapView
-              location={selectedLocation}
-              deadZones={filteredDeadZones}
-              selectedDeadZone={selectedDeadZone}
-              presentationMode={presentationMode}
-              onSelectDeadZone={(deadZone) => setSelectedDeadZoneId(deadZone.id)}
-            />
-          </div>
-
-          <div className="mt-6 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-            <section>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="font-heading text-2xl font-bold">Dead zone ranking</h2>
-                <p className="text-sm font-bold text-[var(--text-muted)]">Score 0-100</p>
-              </div>
-              <div className="space-y-3">
-                {filteredDeadZones.map((deadZone) => (
-                  <DeadZoneCard
-                    key={deadZone.id}
-                    deadZone={deadZone}
-                    selected={deadZone.id === selectedDeadZone.id}
-                    presentationMode={presentationMode}
-                    onSelect={(nextDeadZone) => setSelectedDeadZoneId(nextDeadZone.id)}
-                  />
-                ))}
-              </div>
-            </section>
-
-            <div className="space-y-5">
-              <AIModelSelector value={selectedAIModel} onChange={setSelectedAIModel} disabled={loadingRecommendation} />
-              <AnalysisSubmitPanel
+            </ScrollReveal>
+            <ScrollReveal delay={120}>
+              <MapView
                 location={selectedLocation}
-                actionLabel={selectedActionLabel}
-                deadZone={selectedDeadZone}
-                model={selectedAIModel}
-                loading={loadingRecommendation}
-                onSubmit={runRecommendation}
+                deadZones={filteredDeadZones}
+                selectedDeadZone={selectedDeadZone}
+                presentationMode={presentationMode}
+                onSelectDeadZone={(deadZone) => setSelectedDeadZoneId(deadZone.id)}
               />
-              {analysisSubmitted ? (
+            </ScrollReveal>
+
+            <ScrollReveal delay={160}>
+              <section className="panel rounded-xl p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-heading text-2xl font-bold">Barrier ranking</h2>
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">Most important local blocks, ranked by score.</p>
+                  </div>
+                  <p className="text-sm font-bold text-[var(--text-muted)]">0-100</p>
+                </div>
+                <div className="grid gap-2">
+                  {filteredDeadZones.map((deadZone) => (
+                    <DeadZoneCard
+                      key={deadZone.id}
+                      deadZone={deadZone}
+                      selected={deadZone.id === selectedDeadZone.id}
+                      presentationMode={presentationMode}
+                      onSelect={(nextDeadZone) => setSelectedDeadZoneId(nextDeadZone.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            </ScrollReveal>
+
+            <ScrollReveal delay={200}>
+              <div className="space-y-5">
+                <AIModelSelector value={selectedAIModel} onChange={setSelectedAIModel} disabled={loadingRecommendation} />
+                <AnalysisSubmitPanel
+                  location={selectedLocation}
+                  actionLabel={selectedActionLabel}
+                  deadZone={selectedDeadZone}
+                  model={selectedAIModel}
+                  loading={loadingRecommendation}
+                  onSubmit={runRecommendation}
+                />
+              </div>
+            </ScrollReveal>
+
+            {analysisSubmitted ? (
+              <ScrollReveal delay={80}>
                 <AIExplanationPanel
                   deadZone={selectedDeadZone}
                   recommendation={recommendation}
@@ -425,37 +445,45 @@ export default function Home() {
                   error={recommendationError}
                   presentationMode={presentationMode}
                 />
-              ) : null}
-              {recommendation && !loadingRecommendation ? (
+              </ScrollReveal>
+            ) : null}
+            {recommendation && !loadingRecommendation ? (
+              <ScrollReveal delay={120}>
                 <RecommendationPanel recommendation={recommendation} presentationMode={presentationMode} />
-              ) : null}
-            </div>
-          </div>
+              </ScrollReveal>
+            ) : null}
 
-          {recommendation && !loadingRecommendation ? <div className="mt-6">
-            <VerificationChecklist recommendation={recommendation} presentationMode={presentationMode} />
-          </div> : null}
+            {recommendation && !loadingRecommendation ? (
+              <ScrollReveal delay={160}>
+                <VerificationChecklist recommendation={recommendation} presentationMode={presentationMode} />
+              </ScrollReveal>
+            ) : null}
+          </div>
         </div>
       </section>
 
-      <ResponsibleAISection />
+      <ScrollReveal>
+        <ResponsibleAISection />
+      </ScrollReveal>
 
       <section id="data" className="section pt-0">
         <div className="section-inner">
-          <div className="panel rounded-xl p-6">
-            <h2 className="font-heading text-3xl font-bold">Data source disclosure</h2>
-            <p className="mt-3 max-w-4xl leading-7 text-[var(--text-secondary)]">
-              Greenlight supports public and open data such as OpenStreetMap / Overpass, Census TIGER or ACS-style context,
-              EPA EJScreen-style context, and local observations. This MVP includes local synthetic JSON and GeoJSON so the
-              experience stays reliable when live map services are unavailable.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <DataSourceBadge type="osm" label="OpenStreetMap / Overpass API" />
-              <DataSourceBadge type="census" label="Census TIGER / ACS-style context" />
-              <DataSourceBadge type="ejscreen" label="EPA EJScreen-style context" />
-              <DataSourceBadge type="demo" label="Local JSON / GeoJSON data" />
+          <ScrollReveal>
+            <div className="panel rounded-xl p-6">
+              <h2 className="font-heading text-3xl font-bold">Data source disclosure</h2>
+              <p className="mt-3 max-w-4xl leading-7 text-[var(--text-secondary)]">
+                Greenlight supports public and open data such as OpenStreetMap / Overpass, Census TIGER or ACS-style context,
+                EPA EJScreen-style context, and local observations. This MVP includes local synthetic JSON and GeoJSON so the
+                experience stays reliable when live map services are unavailable.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <DataSourceBadge type="osm" label="OpenStreetMap / Overpass API" />
+                <DataSourceBadge type="census" label="Census TIGER / ACS-style context" />
+                <DataSourceBadge type="ejscreen" label="EPA EJScreen-style context" />
+                <DataSourceBadge type="demo" label="Local JSON / GeoJSON data" />
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
       <DemoReadyBadge active={demoMode} />

@@ -6,7 +6,7 @@ import type { DeadZone, LocationRecord } from "@/lib/types";
 const LazyMap = dynamic(() => import("@/components/map/LazyMap").then((mod) => mod.LazyMap), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[520px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-sm font-bold text-[var(--text-secondary)]">
+    <div className="flex h-[380px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-sm font-bold text-[var(--text-secondary)]">
       Loading local map...
     </div>
   )

@@ -26,6 +26,8 @@ The app works without live API access. Choose a location, select a climate actio
 
 All required local data files live in `data/`, so the product remains usable even when live map or AI services are unavailable.
 
+The location picker includes a local search index of California Department of Education high school sites within 100 miles of San Francisco, with Dublin and Pleasanton ZIP areas prioritized for fast hackathon testing.
+
 ## Showcase Flow
 
 Greenlight includes a subtle recording-ready flow so the app stays reliable during a hackathon walkthrough.
@@ -87,9 +89,10 @@ Greenlight is designed for public, open, synthetic, or user-entered data only:
 - OpenStreetMap / Overpass API
 - Census TIGER / ACS-style context
 - EPA EJScreen-style context
+- California Department of Education School Sites 2024-25 public GIS data for the Bay Area high-school search index
 - Local JSON and GeoJSON data
 
-The current MVP ships synthetic local files so it fully works even when all live APIs fail.
+The current MVP ships synthetic local files plus a generated local high-school index so it fully works even when all live APIs fail.
 
 ## Responsible AI guardrail
 

@@ -22,6 +22,7 @@ This repository contains Greenlight, a Next.js + TypeScript hackathon MVP for ma
 - `components/map/` contains the client-only Leaflet map implementation.
 - `lib/` contains shared types, action definitions, and scoring helpers.
 - `data/` contains synthetic demo JSON and GeoJSON fallback data.
+- `data/bay-area-high-schools.json` contains a generated local index of CDE high school sites within 100 miles of San Francisco for fast offline search suggestions.
 
 ## Working Principles
 

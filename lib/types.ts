@@ -18,6 +18,16 @@ export type LocationRecord = {
   lng: number;
   type: string;
   description: string;
+  category?: string;
+  district?: string;
+  county?: string;
+  zip?: string;
+  gradeSpan?: string;
+  enrollment?: number | null;
+  website?: string;
+  source?: string;
+  distanceFromSf?: number;
+  priorityArea?: boolean;
 };
 
 export type ScoringBreakdown = {

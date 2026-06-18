@@ -1,6 +1,8 @@
 "use client";
 
-import { KeyboardEvent, useMemo, useState } from "react";
+import { KeyboardEvent, useDeferredValue, useMemo, useState } from "react";
+import bayAreaHighSchools from "@/data/bay-area-high-schools.json";
+import { buildLocationIndex, rankLocationSuggestions } from "@/lib/locationSearch";
 import type { LocationRecord } from "@/lib/types";
 
 type LocationSearchProps = {
@@ -10,117 +12,43 @@ type LocationSearchProps = {
   onCustomLocation: (location: LocationRecord) => void;
 };
 
-type LocationSuggestion = LocationRecord & {
-  category: string;
-  matchText: string;
-};
-
-const indexedPlaces: LocationSuggestion[] = [
-  {
-    id: "lincoln-high",
-    name: "Lincoln High School",
-    address: "2162 24th Avenue, San Francisco, CA",
-    lat: 37.7475,
-    lng: -122.4812,
-    type: "school",
-    category: "High school",
-    description: "Public high school result with school commute and bike-access context.",
-    matchText: "lincoln high school san francisco sunset 24th avenue school"
-  },
-  {
-    id: "mission-high",
-    name: "Mission High School",
-    address: "3750 18th Street, San Francisco, CA",
-    lat: 37.7613,
-    lng: -122.4275,
-    type: "school",
-    category: "High school",
-    description: "Urban school result useful for walking, transit, and idling barrier analysis.",
-    matchText: "mission high school 18th street san francisco school transit"
-  },
-  {
-    id: "washington-high",
-    name: "George Washington High School",
-    address: "600 32nd Avenue, San Francisco, CA",
-    lat: 37.7771,
-    lng: -122.4914,
-    type: "school",
-    category: "High school",
-    description: "Campus result with bike approach, curb access, and crossing context.",
-    matchText: "george washington high school 32nd avenue richmond district school"
-  },
-  {
-    id: "civic-center",
-    name: "Civic Center Plaza",
-    address: "335 McAllister Street, San Francisco, CA",
-    lat: 37.7793,
-    lng: -122.4184,
-    type: "civic",
-    category: "Civic place",
-    description: "Civic destination result for transit, walking, refill, and public-space access analysis.",
-    matchText: "civic center plaza city hall mcallister street san francisco"
-  },
-  {
-    id: "dolores-park",
-    name: "Mission Dolores Park",
-    address: "Dolores Street & 19th Street, San Francisco, CA",
-    lat: 37.7596,
-    lng: -122.4269,
-    type: "park",
-    category: "Park",
-    description: "Public park result with waste, refill, and access visibility context.",
-    matchText: "mission dolores park 19th street san francisco park"
-  }
-];
-
 export function LocationSearch({ locations, selectedLocation, onSelectLocation, onCustomLocation }: LocationSearchProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const deferredQuery = useDeferredValue(query);
 
-  const suggestions = useMemo(() => {
-    const demoSuggestions: LocationSuggestion[] = locations.map((location) => ({
-      ...location,
-      category: location.type === "school" ? "School" : location.type === "community" ? "Community place" : "Neighborhood",
-      matchText: `${location.name} ${location.address} ${location.type} ${location.description}`.toLowerCase()
-    }));
-    const allPlaces = [...demoSuggestions, ...indexedPlaces];
-    const normalizedQuery = query.trim().toLowerCase();
+  const locationIndex = useMemo(
+    () =>
+      buildLocationIndex([
+        ...locations,
+        ...((bayAreaHighSchools as LocationRecord[]).filter((school) => school.name !== "Greenlight High School"))
+      ]),
+    [locations]
+  );
 
-    if (!normalizedQuery) {
-      return allPlaces.slice(0, 6);
-    }
-
-    const queryTerms = normalizedQuery.split(/\s+/);
-    const ranked = allPlaces
-      .map((place) => {
-        const haystack = `${place.matchText} ${place.name.toLowerCase()} ${place.address.toLowerCase()}`;
-        const score = queryTerms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0), 0);
-        const startsWithBoost = place.name.toLowerCase().startsWith(normalizedQuery) ? 2 : 0;
-        return { place, score: score + startsWithBoost };
-      })
-      .filter((result) => result.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((result) => result.place);
+  const suggestions = useMemo<LocationRecord[]>(() => {
+    const ranked = rankLocationSuggestions(locationIndex, deferredQuery, 8);
 
     if (ranked.length > 0) {
-      return ranked.slice(0, 7);
+      return ranked;
     }
+
+    const normalizedQuery = deferredQuery.trim().toLowerCase();
 
     return [
       {
         id: `custom-${normalizedQuery.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "location"}`,
-        name: query.trim(),
+        name: deferredQuery.trim(),
         address: "User-entered location",
         lat: selectedLocation.lat,
         lng: selectedLocation.lng,
         type: "custom",
         category: "Custom place",
-        description: "Use this typed place with Greenlight local barrier analysis.",
-        matchText: normalizedQuery
+        description: "Use this typed place with Greenlight local barrier analysis."
       }
     ];
-  }, [locations, query, selectedLocation.lat, selectedLocation.lng]);
+  }, [deferredQuery, locationIndex, selectedLocation.lat, selectedLocation.lng]);
 
   function selectSuggestion(location: LocationRecord) {
     if (location.type === "custom") {
@@ -152,14 +80,25 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
         selectSuggestion(activeSuggestion);
       }
     }
+
+    if (event.key === "Escape") {
+      setOpen(false);
+    }
   }
 
   return (
     <div className="soft-panel rounded-xl p-5">
-      <h2 className="font-heading text-2xl font-bold">Location search</h2>
-      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-        Type a place and choose the correct result by name and address.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-heading text-2xl font-bold">Location search</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+            Search Bay Area high schools and choose the exact campus by address.
+          </p>
+        </div>
+        <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-bold text-[var(--text-muted)]">
+          {locationIndex.length} indexed places
+        </span>
+      </div>
 
       <label className="mt-5 block text-sm font-bold text-[var(--text-primary)]" htmlFor="location-search">
         Search for a location
@@ -176,7 +115,7 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search schools, parks, streets, or neighborhoods"
+          placeholder="Search by school, city, district, address, or ZIP"
           autoComplete="off"
           role="combobox"
           aria-expanded={open}
@@ -186,7 +125,7 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
         {open ? (
           <div
             id="location-results"
-            className="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
+            className="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 max-h-[26rem] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
           >
             {suggestions.map((location, index) => {
               const active = activeIndex === index;
@@ -195,18 +134,27 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
                 <button
                   key={location.id}
                   type="button"
-                  className={`flex w-full items-start gap-3 border-b border-[var(--border)] p-3 text-left last:border-b-0 ${
+                  className={`flex w-full items-start justify-between gap-3 border-b border-[var(--border)] p-3 text-left last:border-b-0 ${
                     active ? "bg-[color-mix(in_srgb,var(--data)_12%,var(--surface))]" : "bg-[var(--surface)] hover:bg-[var(--surface-elevated)]"
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => selectSuggestion(location)}
                 >
-                  <span>
-                    <span className="block text-sm font-bold text-[var(--text-primary)]">{location.name}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-bold text-[var(--text-primary)]">{location.name}</span>
                     <span className="mt-0.5 block text-sm text-[var(--text-secondary)]">{location.address}</span>
-                    <span className="mt-1 block text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">{location.category}</span>
+                    <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+                      <span>{location.category ?? "Location"}</span>
+                      {location.district ? <span>{location.district}</span> : null}
+                      {typeof location.distanceFromSf === "number" ? <span>{location.distanceFromSf} mi from SF</span> : null}
+                    </span>
                   </span>
+                  {location.priorityArea ? (
+                    <span className="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--primary)_55%,var(--border))] px-2 py-1 text-xs font-bold text-[var(--primary)]">
+                      Tri-Valley
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
@@ -214,12 +162,17 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
         ) : null}
       </div>
 
-      <div className="mt-4 flex gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
-        <div>
-          <p className="font-bold text-[var(--text-primary)]">{selectedLocation.name}</p>
-          <p className="mt-1 text-sm font-semibold text-[var(--text-secondary)]">{selectedLocation.address}</p>
-          <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{selectedLocation.description}</p>
-        </div>
+      <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+        <p className="font-bold text-[var(--text-primary)]">{selectedLocation.name}</p>
+        <p className="mt-1 text-sm font-semibold text-[var(--text-secondary)]">{selectedLocation.address}</p>
+        <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{selectedLocation.description}</p>
+        {selectedLocation.district || selectedLocation.enrollment ? (
+          <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+            {[selectedLocation.district, selectedLocation.enrollment ? `${selectedLocation.enrollment.toLocaleString()} students` : null]
+              .filter(Boolean)
+              .join(" / ")}
+          </p>
+        ) : null}
       </div>
     </div>
   );

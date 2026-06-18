@@ -15,7 +15,7 @@ export function ActionSelector({ selectedAction, onSelectAction }: ActionSelecto
       <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
         Choose the action Greenlight should test against local conditions.
       </p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid gap-2">
         {climateActions.map((action) => {
           const selected = action.id === selectedAction;
 
@@ -23,7 +23,7 @@ export function ActionSelector({ selectedAction, onSelectAction }: ActionSelecto
             <button
               key={action.id}
               type="button"
-              className={`rounded-lg border p-3 text-left transition ${
+              className={`rounded-lg border px-3 py-2.5 text-left transition ${
                 selected
                   ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_14%,var(--surface))]"
                   : "border-[var(--border)] bg-[var(--surface)] hover:border-[color-mix(in_srgb,var(--primary)_45%,var(--border))]"
@@ -31,7 +31,7 @@ export function ActionSelector({ selectedAction, onSelectAction }: ActionSelecto
               onClick={() => onSelectAction(action.id)}
             >
               <span className="font-bold text-[var(--text-primary)]">{action.label}</span>
-              <p className="mt-2 text-sm leading-5 text-[var(--text-secondary)]">{action.description}</p>
+              <span className="ml-2 text-sm leading-5 text-[var(--text-secondary)]">{action.description}</span>
             </button>
           );
         })}

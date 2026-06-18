@@ -2,8 +2,8 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { CircleMarker, GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { useEffect } from "react";
+import { CircleMarker, GeoJSON, MapContainer, Marker, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { useEffect, useMemo } from "react";
 import type { DeadZone, LocationRecord } from "@/lib/types";
 import { demoOsmGeoJson } from "@/lib/demoOsm";
 
@@ -15,16 +15,14 @@ type LazyMapProps = {
   onSelectDeadZone: (deadZone: DeadZone) => void;
 };
 
-function MapCamera({ location, selectedDeadZone }: { location: LocationRecord; selectedDeadZone: DeadZone }) {
+const demoMapOrigin = { lat: 37.7749, lng: -122.4194 };
+
+function MapCamera({ selectedDeadZone }: { location: LocationRecord; selectedDeadZone: DeadZone }) {
   const map = useMap();
 
   useEffect(() => {
-    map.flyTo([selectedDeadZone.lat, selectedDeadZone.lng], 15, { duration: 0.7 });
+    map.flyTo([selectedDeadZone.lat, selectedDeadZone.lng], 16, { duration: 0.7 });
   }, [map, selectedDeadZone]);
-
-  useEffect(() => {
-    map.setView([location.lat, location.lng], 14);
-  }, [location, map]);
 
   return null;
 }
@@ -43,40 +41,43 @@ function markerColor(deadZone: DeadZone) {
 
 const schoolIcon = L.divIcon({
   className: "greenlight-school-marker",
-  html: '<div style="width:28px;height:28px;border-radius:8px;background:var(--primary);border:3px solid var(--surface);box-shadow:0 12px 28px rgba(0,0,0,.22)"></div>',
-  iconSize: [28, 28],
-  iconAnchor: [14, 14]
+  html: '<div class="map-school-pin"><span>G</span></div>',
+  iconSize: [34, 42],
+  iconAnchor: [17, 36]
 });
 
 export function LazyMap({ location, deadZones, selectedDeadZone, presentationMode = false, onSelectDeadZone }: LazyMapProps) {
+  const localizedGeoJson = useMemo(() => localizeGeoJson(location), [location]);
+
   return (
     <div className="panel overflow-hidden rounded-xl">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] p-3">
         <div>
           <h2 className="font-heading text-2xl font-bold">Interactive local map</h2>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">
-            Uses OpenStreetMap tiles when available, with local map layers and Greenlight barrier analysis.
-          </p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">Select a marker or ranking card.</p>
         </div>
         <div className="rounded-lg bg-[color-mix(in_srgb,var(--data)_14%,var(--surface))] px-3 py-2 text-sm font-bold text-[var(--data)]">
           {deadZones.length} barriers ranked
         </div>
       </div>
       <div className="map-shell">
-        <MapContainer center={[location.lat, location.lng]} zoom={14} scrollWheelZoom className="h-full w-full">
+        <MapContainer center={[location.lat, location.lng]} zoom={15} scrollWheelZoom className="h-full w-full">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <GeoJSON
-            data={demoOsmGeoJson as GeoJSON.GeoJsonObject}
+            key={`${location.id}-${location.lat}-${location.lng}`}
+            data={localizedGeoJson as GeoJSON.GeoJsonObject}
             style={(feature) => {
               const kind = feature?.properties?.kind;
               return {
                 color: kind === "sidewalk_gap" ? "var(--danger)" : kind === "bike_conflict" ? "var(--warning)" : "var(--data)",
-                weight: 5,
-                opacity: 0.82,
-                fillOpacity: 0.08
+                weight: kind === "school" ? 2 : 5,
+                opacity: 0.86,
+                fillColor: kind === "school" ? "var(--primary)" : "var(--data)",
+                fillOpacity: kind === "school" ? 0.09 : 0.08,
+                dashArray: kind === "sidewalk_gap" ? "8 8" : undefined
               };
             }}
             pointToLayer={(_, latlng) =>
@@ -97,7 +98,7 @@ export function LazyMap({ location, deadZones, selectedDeadZone, presentationMod
             </Popup>
           </Marker>
           {deadZones.map((deadZone) => (
-            <CircleMarkerWithPulse
+            <BarrierMarker
               key={deadZone.id}
               deadZone={deadZone}
               selected={selectedDeadZone.id === deadZone.id}
@@ -107,7 +108,7 @@ export function LazyMap({ location, deadZones, selectedDeadZone, presentationMod
           ))}
           <MapCamera location={location} selectedDeadZone={selectedDeadZone} />
         </MapContainer>
-        <div className="map-floating-card left-[4.75rem] top-4 max-w-[270px]">
+        <div className="map-floating-card left-[4.75rem] top-3 max-w-[240px]">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">Selected barrier</p>
           <p className="mt-1 font-heading text-base font-bold text-[var(--text-primary)]">{selectedDeadZone.name}</p>
           <p className="mt-1 text-xs font-semibold text-[var(--text-secondary)]">
@@ -118,9 +119,6 @@ export function LazyMap({ location, deadZones, selectedDeadZone, presentationMod
           <LegendDot color="var(--danger)" label="High" />
           <LegendDot color="var(--warning)" label="Medium" />
           <LegendDot color="var(--primary)" label="Low" />
-        </div>
-        <div className="map-floating-card bottom-4 right-4 hidden text-xs font-bold text-[var(--text-secondary)] sm:block">
-          Click markers or ranking cards
         </div>
       </div>
     </div>
@@ -136,7 +134,60 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function CircleMarkerWithPulse({
+function localizeGeoJson(location: LocationRecord) {
+  const latOffset = location.lat - demoMapOrigin.lat;
+  const lngOffset = location.lng - demoMapOrigin.lng;
+
+  function transformCoordinate(coordinate: unknown): unknown {
+    if (
+      Array.isArray(coordinate) &&
+      coordinate.length >= 2 &&
+      typeof coordinate[0] === "number" &&
+      typeof coordinate[1] === "number"
+    ) {
+      return [Number((coordinate[0] + lngOffset).toFixed(6)), Number((coordinate[1] + latOffset).toFixed(6))];
+    }
+
+    if (Array.isArray(coordinate)) {
+      return coordinate.map(transformCoordinate);
+    }
+
+    return coordinate;
+  }
+
+  return {
+    ...demoOsmGeoJson,
+    features: demoOsmGeoJson.features.map((feature) => ({
+      ...feature,
+      geometry: {
+        ...feature.geometry,
+        coordinates: transformCoordinate(feature.geometry.coordinates)
+      }
+    }))
+  };
+}
+
+function markerLetter(deadZone: DeadZone) {
+  if (deadZone.category.toLowerCase().includes("bike")) return "B";
+  if (deadZone.category.toLowerCase().includes("walking")) return "W";
+  if (deadZone.category.toLowerCase().includes("transit")) return "T";
+  if (deadZone.category.toLowerCase().includes("waste")) return "C";
+  if (deadZone.category.toLowerCase().includes("air")) return "I";
+  return "R";
+}
+
+function barrierIcon(deadZone: DeadZone, selected: boolean) {
+  const color = markerColor(deadZone);
+
+  return L.divIcon({
+    className: "greenlight-barrier-marker",
+    html: `<button class="map-barrier-pin ${selected ? "is-selected" : ""}" style="--pin-color:${color}" aria-label="${deadZone.name}"><span class="map-barrier-letter">${markerLetter(deadZone)}</span><span class="map-barrier-score">${deadZone.score}</span></button>`,
+    iconSize: selected ? [48, 56] : [42, 50],
+    iconAnchor: selected ? [24, 48] : [21, 42]
+  });
+}
+
+function BarrierMarker({
   deadZone,
   selected,
   presentationMode,
@@ -151,40 +202,49 @@ function CircleMarkerWithPulse({
 
   return (
     <>
-      {selected && presentationMode ? (
+      {selected ? (
         <CircleMarker
           center={[deadZone.lat, deadZone.lng]}
-          radius={26}
+          radius={presentationMode ? 32 : 25}
           pathOptions={{
             color,
             fillColor: color,
-            fillOpacity: 0.12,
-            opacity: 0.44,
+            fillOpacity: 0.1,
+            opacity: 0.5,
             weight: 2,
-            className: "greenlight-map-pulse"
+            className: presentationMode ? "greenlight-map-pulse" : undefined
           }}
           interactive={false}
         />
       ) : null}
       <CircleMarker
         center={[deadZone.lat, deadZone.lng]}
-        radius={selected ? 18 : 12}
+        radius={selected ? 10 : 7}
         pathOptions={{
           color,
-          fillColor: color,
-          fillOpacity: selected ? 0.65 : 0.42,
-          weight: selected ? 4 : 2
+          fillColor: "var(--surface)",
+          fillOpacity: 0.7,
+          opacity: 0.7,
+          weight: 2
         }}
+        interactive={false}
+      />
+      <Marker
+        position={[deadZone.lat, deadZone.lng]}
+        icon={barrierIcon(deadZone, selected)}
         eventHandlers={{
           click: () => onSelectDeadZone(deadZone)
         }}
       >
+        <Tooltip direction="top" offset={[0, -36]} opacity={0.96}>
+          {deadZone.name}
+        </Tooltip>
         <Popup>
           <strong>{deadZone.name}</strong>
           <br />
           Score {deadZone.score} / {deadZone.severity}
         </Popup>
-      </CircleMarker>
+      </Marker>
     </>
   );
 }
