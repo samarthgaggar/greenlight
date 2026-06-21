@@ -1,0 +1,12 @@
+{
+  "source": "EPA EJScreen-style synthetic local context",
+  "heatExposurePercentile": 72,
+  "trafficProximityPercentile": 68,
+  "pm25Percentile": 54,
+  "treeCanopyConcern": "Moderate",
+  "floodRiskConcern": "Low",
+  "notes": [
+    "Values imitate public environmental context but are not real EPA outputs.",
+    "Use live public sources only when available and verified."
+  ]
+}

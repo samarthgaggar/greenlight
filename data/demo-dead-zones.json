@@ -1,0 +1,176 @@
+[
+  {
+    "id": "unsafe-bike-approach",
+    "name": "Unsafe Bike Approach",
+    "category": "Bike access",
+    "selectedActions": ["bike", "school-commute"],
+    "score": 82,
+    "severity": "High",
+    "label": "Blocked",
+    "lat": 37.7756,
+    "lng": -122.4211,
+    "confidence": 0.78,
+    "scoringBreakdown": {
+      "accessGap": 21,
+      "safetyFriction": 24,
+      "actionImportance": 17,
+      "equityAccessConcern": 10,
+      "fixFeasibility": 10
+    },
+    "observedEvidence": [
+      "Bike approach intersects the busiest vehicle arrival edge.",
+      "No protected waiting pocket is shown in the local map layer.",
+      "Student observation notes mention turning conflicts."
+    ],
+    "recommendedFixes": [
+      "Mark a protected bike arrival box with cones during drop-off.",
+      "Move staff supervision to the conflict point for one week of verification.",
+      "Request a city review for curb paint, daylighting, and bike-lane protection."
+    ]
+  },
+  {
+    "id": "missing-sidewalk-gap",
+    "name": "Missing Sidewalk Gap",
+    "category": "Walking access",
+    "selectedActions": ["walk", "school-commute", "transit"],
+    "score": 67,
+    "severity": "Medium",
+    "label": "Friction",
+    "lat": 37.7738,
+    "lng": -122.4178,
+    "confidence": 0.72,
+    "scoringBreakdown": {
+      "accessGap": 22,
+      "safetyFriction": 18,
+      "actionImportance": 13,
+      "equityAccessConcern": 9,
+      "fixFeasibility": 5
+    },
+    "observedEvidence": [
+      "Local OSM-style layer shows a disconnected pedestrian segment.",
+      "The gap sits between a bus stop and the school entrance.",
+      "Synthetic census context shows households without vehicles are relevant."
+    ],
+    "recommendedFixes": [
+      "Document the gap with daytime photos from a safe location.",
+      "Ask facilities and the city to evaluate a temporary walking path.",
+      "Prioritize a permanent sidewalk connection in the capital request list."
+    ]
+  },
+  {
+    "id": "transit-access-gap",
+    "name": "Transit Access Gap",
+    "category": "Transit access",
+    "selectedActions": ["transit", "school-commute"],
+    "score": 61,
+    "severity": "Medium",
+    "label": "Friction",
+    "lat": 37.7785,
+    "lng": -122.4152,
+    "confidence": 0.69,
+    "scoringBreakdown": {
+      "accessGap": 19,
+      "safetyFriction": 14,
+      "actionImportance": 16,
+      "equityAccessConcern": 8,
+      "fixFeasibility": 4
+    },
+    "observedEvidence": [
+      "Frequent transit appears beyond a comfortable five-minute walk shed.",
+      "Missing shade and wayfinding increase friction for students carrying bags.",
+      "Synthetic demographic context flags non-car access as important."
+    ],
+    "recommendedFixes": [
+      "Create a student-tested walking map to the nearest frequent stop.",
+      "Ask transit staff about a school-day stop timing adjustment.",
+      "Add shade, seating, or wayfinding requests to the corridor improvement list."
+    ]
+  },
+  {
+    "id": "compost-placement-gap",
+    "name": "Compost Placement Gap",
+    "category": "Waste diversion",
+    "selectedActions": ["compost", "waste"],
+    "score": 74,
+    "severity": "High",
+    "label": "Blocked",
+    "lat": 37.7745,
+    "lng": -122.4191,
+    "confidence": 0.81,
+    "scoringBreakdown": {
+      "accessGap": 18,
+      "safetyFriction": 15,
+      "actionImportance": 19,
+      "equityAccessConcern": 8,
+      "fixFeasibility": 14
+    },
+    "observedEvidence": [
+      "Bins are placed outside the main disposal line in local observations.",
+      "Compost action has high climate relevance for cafeteria waste.",
+      "Fix feasibility is high because placement can be tested quickly."
+    ],
+    "recommendedFixes": [
+      "Move compost bins directly next to trash during one lunch period.",
+      "Use color-coded signs above the disposal line.",
+      "Run a two-day contamination check before requesting permanent placement."
+    ]
+  },
+  {
+    "id": "pickup-line-idling",
+    "name": "Pickup-Line Idling Bottleneck",
+    "category": "Air quality",
+    "selectedActions": ["idling", "school-commute"],
+    "score": 79,
+    "severity": "High",
+    "label": "Blocked",
+    "lat": 37.7729,
+    "lng": -122.4202,
+    "confidence": 0.74,
+    "scoringBreakdown": {
+      "accessGap": 15,
+      "safetyFriction": 23,
+      "actionImportance": 18,
+      "equityAccessConcern": 12,
+      "fixFeasibility": 11
+    },
+    "observedEvidence": [
+      "Vehicle queue overlaps the dismissal walking path.",
+      "Traffic proximity context suggests idling reductions may matter locally.",
+      "Observation notes mention multiple signal-cycle delays."
+    ],
+    "recommendedFixes": [
+      "Pilot a staggered pickup zone and no-idling reminder signs.",
+      "Measure queue length every five minutes for one dismissal week.",
+      "Ask administrators to coordinate arrival and dismissal routing with the city."
+    ]
+  },
+  {
+    "id": "refill-visibility-gap",
+    "name": "Refill Station Visibility Gap",
+    "category": "Reuse access",
+    "selectedActions": ["reuse", "waste"],
+    "score": 38,
+    "severity": "Low",
+    "label": "Actionable",
+    "lat": 37.7764,
+    "lng": -122.4185,
+    "confidence": 0.86,
+    "scoringBreakdown": {
+      "accessGap": 9,
+      "safetyFriction": 5,
+      "actionImportance": 9,
+      "equityAccessConcern": 4,
+      "fixFeasibility": 11
+    },
+    "observedEvidence": [
+      "Refill infrastructure exists but is not visible from common student paths.",
+      "Signage and announcements can be tested without construction.",
+      "High confidence comes from direct walkthrough notes."
+    ],
+    "recommendedFixes": [
+      "Add directional signs at gym and courtyard entries.",
+      "Mark refill stations on student maps and club announcements.",
+      "Track bottle refill counts before and after signage."
+    ]
+  }
+]

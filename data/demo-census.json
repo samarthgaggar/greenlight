@@ -1,0 +1,13 @@
+{
+  "source": "Synthetic ACS-style local context",
+  "tract": "Local Tract 06075010100",
+  "medianHouseholdIncome": 68500,
+  "youthSharePercent": 23,
+  "householdsWithoutVehiclePercent": 16,
+  "limitedEnglishHouseholdsPercent": 9,
+  "disabilitySharePercent": 11,
+  "notes": [
+    "Values are synthetic and intended for local product testing only.",
+    "Used to prioritize fairness and access, not to stereotype or infer individual behavior."
+  ]
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "obs-bike-1",
+    "deadZoneId": "unsafe-bike-approach",
+    "text": "Students reported cars turning across the bike approach during morning arrival.",
+    "source": "Student walkthrough note",
+    "confidence": "medium"
+  },
+  {
+    "id": "obs-sidewalk-1",
+    "deadZoneId": "missing-sidewalk-gap",
+    "text": "A 180-foot segment between the bus stop and school entrance lacks a continuous walking path.",
+    "source": "Local map survey",
+    "confidence": "high"
+  },
+  {
+    "id": "obs-transit-1",
+    "deadZoneId": "transit-access-gap",
+    "text": "The nearest frequent-route stop is outside the comfortable five-minute walk shed.",
+    "source": "Synthetic transit access analysis",
+    "confidence": "medium"
+  },
+  {
+    "id": "obs-compost-1",
+    "deadZoneId": "compost-placement-gap",
+    "text": "Compost bins appear behind the cafeteria exit rather than in the main lunch disposal path.",
+    "source": "Student waste audit",
+    "confidence": "medium"
+  },
+  {
+    "id": "obs-idling-1",
+    "deadZoneId": "pickup-line-idling",
+    "text": "Cars queue for multiple signal cycles near the pickup lane between 3:00 and 3:25 PM.",
+    "source": "Dismissal observation",
+    "confidence": "medium"
+  },
+  {
+    "id": "obs-refill-1",
+    "deadZoneId": "refill-visibility-gap",
+    "text": "Refill stations exist, but signage is not visible from the gym and courtyard entries.",
+    "source": "Campus walkthrough",
+    "confidence": "high"
+  }
+]

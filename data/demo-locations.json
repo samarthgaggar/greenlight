@@ -1,0 +1,29 @@
+[
+  {
+    "id": "greenlight-high",
+    "name": "Greenlight High School",
+    "address": "125 Civic Way, Springfield",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "type": "school",
+    "description": "A campus location with school commute and climate-action barrier context."
+  },
+  {
+    "id": "library-corridor",
+    "name": "Civic Library Corridor",
+    "address": "300 Market Street, Springfield",
+    "lat": 37.7795,
+    "lng": -122.4142,
+    "type": "community",
+    "description": "A downtown corridor with transit, walking, recycling, and refill-station examples."
+  },
+  {
+    "id": "east-park",
+    "name": "East Park Neighborhood",
+    "address": "88 Willow Avenue, Springfield",
+    "lat": 37.7687,
+    "lng": -122.4312,
+    "type": "neighborhood",
+    "description": "A residential area with school commute and public-space access examples."
+  }
+]
