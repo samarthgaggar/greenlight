@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,13 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-heading",
   display: "swap"
 });
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4fbf7" },
+    { media: "(prefers-color-scheme: dark)",  color: "#06130e" }
+  ]
+};
 
 export const metadata: Metadata = {
   title: "Greenlight | Local climate action barriers",

@@ -1,4 +1,4 @@
-import type { AIRecommendation, RecommendationResponse } from "@/lib/types";
+import type { AIRecommendation, FactorNarrative, InterventionId, RecommendationResponse } from "@/lib/types";
 
 const DEMO_KEY = "greenlight-demo-mode";
 const AI_MODE_KEY = "greenlight-ai-mode";
@@ -8,6 +8,7 @@ export type DemoDefaults = {
   location: "Greenlight High School";
   selectedAction: "bike";
   selectedDeadZoneId: "unsafe-bike-approach";
+  selectedInterventionIds: InterventionId[];
   useMockData: true;
   useMockAI: true;
   presentationMode: false;
@@ -71,6 +72,7 @@ export function getDemoDefaults(): DemoDefaults {
     location: "Greenlight High School",
     selectedAction: "bike",
     selectedDeadZoneId: "unsafe-bike-approach",
+    selectedInterventionIds: ["protected-bike-arrival"],
     useMockData: true,
     useMockAI: true,
     presentationMode: false
@@ -155,8 +157,17 @@ export function createPolishedDemoRecommendation(): RecommendationResponse {
       "This recommendation supports student inquiry. It does not replace professional engineering, legal, safety, or environmental review."
   };
 
+  const factorNarratives: FactorNarrative[] = [
+    { group: "Infrastructure", explanation: "The bike approach overlaps the busiest vehicle arrival edge, so the physical layout makes the route feel blocked." },
+    { group: "Safety", explanation: "Turning conflicts and the lack of a protected waiting pocket add the most friction, which discourages riding." },
+    { group: "Behavior", explanation: "Biking to school is a high-value climate action here, so the barrier suppresses a choice many students would otherwise make." },
+    { group: "Accessibility", explanation: "Students without reliable car access are most affected, raising the equity weight of fixing this approach." },
+    { group: "Feasibility", explanation: "A temporary protected arrival box can be tested quickly, so the barrier is realistically addressable." }
+  ];
+
   return {
     ...recommendation,
+    factorNarratives,
     mode: "mock"
   };
 }

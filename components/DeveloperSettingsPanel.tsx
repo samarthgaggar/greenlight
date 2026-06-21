@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy, RotateCcw, Settings, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { PresentationModeControls } from "@/components/PresentationModeControls";
 import type { AiMode } from "@/lib/demoMode";
 
@@ -46,6 +46,42 @@ export function DeveloperSettingsPanel({
   onPresentationModeChange,
   onResetDemoFlow
 }: DeveloperSettingsPanelProps) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef       = useRef<HTMLElement | null>(null);
+
+  // Focus the close button when the panel opens.
+  useEffect(() => {
+    if (open) closeButtonRef.current?.focus();
+  }, [open]);
+
+  // Trap focus inside the panel and close on Escape.
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const first = focusable[0];
+      const last  = focusable[focusable.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      } else {
+        if (document.activeElement === last)  { event.preventDefault(); first?.focus(); }
+      }
+    }
+
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onClose]);
+
   async function copyDemoUrl() {
     const url = `${window.location.origin}${window.location.pathname}?showcase=greenlight`;
     await window.navigator.clipboard?.writeText(url);
@@ -56,12 +92,16 @@ export function DeveloperSettingsPanel({
       <div
         className={`fixed inset-0 z-[60] bg-black/25 backdrop-blur-[2px] transition-opacity ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={onClose}
+        aria-hidden="true"
       />
       <aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Developer settings"
         className={`fixed right-0 top-0 z-[70] flex h-dvh w-[min(420px,100vw)] flex-col border-l border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)] transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
-        aria-hidden={!open}
       >
         <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
           <div className="flex items-center gap-3">
@@ -73,7 +113,7 @@ export function DeveloperSettingsPanel({
               <p className="text-xs font-semibold text-[var(--text-muted)]">Internal controls</p>
             </div>
           </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Close developer settings">
+          <button ref={closeButtonRef} type="button" className="icon-button" onClick={onClose} aria-label="Close developer settings">
             <X size={18} />
           </button>
         </div>

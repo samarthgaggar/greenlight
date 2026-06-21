@@ -120,11 +120,15 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
           role="combobox"
           aria-expanded={open}
           aria-controls="location-results"
+          aria-haspopup="listbox"
+          aria-activedescendant={open && suggestions[activeIndex] ? `location-option-${activeIndex}` : undefined}
         />
 
         {open ? (
           <div
             id="location-results"
+            role="listbox"
+            aria-label="Location suggestions"
             className="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 max-h-[26rem] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
           >
             {suggestions.map((location, index) => {
@@ -133,9 +137,12 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
               return (
                 <button
                   key={location.id}
+                  id={`location-option-${index}`}
                   type="button"
+                  role="option"
+                  aria-selected={active}
                   className={`flex w-full items-start justify-between gap-3 border-b border-[var(--border)] p-3 text-left last:border-b-0 ${
-                    active ? "bg-[color-mix(in_srgb,var(--data)_12%,var(--surface))]" : "bg-[var(--surface)] hover:bg-[var(--surface-elevated)]"
+                    active ? "bg-[var(--data-soft)]" : "bg-[var(--surface)] hover:bg-[var(--surface-elevated)]"
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseDown={(event) => event.preventDefault()}

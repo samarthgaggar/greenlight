@@ -4,7 +4,9 @@ Guidance for agents working in this repository.
 
 ## Project State
 
-This repository contains Greenlight, a Next.js + TypeScript hackathon MVP for mapping local climate-action barriers and ranking practical fixes students can verify.
+This repository contains Greenlight, a Next.js + TypeScript hackathon MVP for mapping local climate-action barriers and ranking practical fixes students can verify. It is an AI-powered sustainability decision support platform built around one question: "If we make this sustainability improvement, what happens?"
+
+The deterministic scoring/simulation engine produces every number. The LLM only explains those numbers in words and must never generate or modify numeric values.
 
 ## Stack
 
@@ -20,7 +22,12 @@ This repository contains Greenlight, a Next.js + TypeScript hackathon MVP for ma
 - `app/` contains the Next.js app, global styles, and API routes.
 - `components/` contains UI components.
 - `components/map/` contains the client-only Leaflet map implementation.
-- `lib/` contains shared types, action definitions, and scoring helpers.
+- `lib/` contains shared types, action definitions, and the deterministic engine.
+- `lib/scoring.ts` holds score categories, severity, and confidence helpers.
+- `lib/interventions.ts` is the catalog of simulatable improvements with synthetic, deterministic effect coefficients.
+- `lib/simulation.ts` exposes `projectScenario` for instant per-barrier what-if projections (score, emissions, waste, adoption, confidence).
+- `lib/ranking.ts` exposes `rankInterventions` for deterministic impact prioritization.
+- `lib/explain.ts` decomposes a score into root-cause factors (`explainScore`) and projection changes (`explainProjection`).
 - `data/` contains synthetic demo JSON and GeoJSON fallback data.
 - `data/bay-area-high-schools.json` contains a generated local index of CDE high school sites within 100 miles of San Francisco for fast offline search suggestions.
 
@@ -54,7 +61,7 @@ For live Hack Club AI recommendations, create `.env.local` in the project root:
 
 `HACKCLUB_AI_API_KEY=actual_key_here`
 
-Never paste the key into frontend code. The frontend calls `/api/recommendation`; only `app/api/recommendation/route.ts` reads the server-side environment variable.
+Never paste the key into frontend code. The frontend calls `/api/recommendation`; only `app/api/recommendation/route.ts` reads the server-side environment variable. That route accepts a `task` discriminator (`explanation`, `factors`, `scenario`) and returns prose narration only; it must never originate numeric values.
 
 ## Verification
 

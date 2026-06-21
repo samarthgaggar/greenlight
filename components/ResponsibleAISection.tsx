@@ -4,7 +4,9 @@ const guardrails = [
   "Safety claims require human verification.",
   "Demographic data is used only to prioritize fairness and access.",
   "Students should not inspect unsafe roads alone.",
-  "The app recommends decisions; it does not make final infrastructure judgments."
+  "The app recommends decisions; it does not make final infrastructure judgments.",
+  "Projected impacts are estimates from synthetic coefficients and require verification.",
+  "The AI explains deterministic scores and projections; it never generates the numbers."
 ];
 
 export function ResponsibleAISection() {

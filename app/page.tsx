@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AIExplanationPanel } from "@/components/AIExplanationPanel";
 import { AIModelSelector } from "@/components/AIModelSelector";
 import { ActionSelector } from "@/components/ActionSelector";
@@ -10,9 +10,12 @@ import { DeadZoneCard } from "@/components/DeadZoneCard";
 import { DemoReadyBadge } from "@/components/DemoReadyBadge";
 import { DeveloperSettingsPanel } from "@/components/DeveloperSettingsPanel";
 import { Hero } from "@/components/Hero";
+import { InterventionRankingPanel } from "@/components/InterventionRankingPanel";
+import { InterventionSelector } from "@/components/InterventionSelector";
 import { LocationSearch } from "@/components/LocationSearch";
 import { MapView } from "@/components/MapView";
 import { Navbar } from "@/components/Navbar";
+import { ProjectedImpactPanel } from "@/components/ProjectedImpactPanel";
 import { RecommendationPanel } from "@/components/RecommendationPanel";
 import { ResponsibleAISection } from "@/components/ResponsibleAISection";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -23,6 +26,10 @@ import observationsData from "@/data/demo-observations.json";
 import censusContext from "@/data/demo-census.json";
 import ejContext from "@/data/demo-ejscreen.json";
 import { climateActions } from "@/lib/actions";
+import { getInterventions } from "@/lib/interventions";
+import { explainScore } from "@/lib/explain";
+import { projectScenario, type SimulationContext } from "@/lib/simulation";
+import { rankInterventions } from "@/lib/ranking";
 import {
   type AiMode,
   createPolishedDemoRecommendation,
@@ -38,7 +45,16 @@ import {
   setStoredPresentationMode,
   toggleDemoMode
 } from "@/lib/demoMode";
-import type { AIModelChoice, ClimateActionId, DeadZone, LocationRecord, Observation, RecommendationResponse } from "@/lib/types";
+import type {
+  AIModelChoice,
+  ClimateActionId,
+  DeadZone,
+  InterventionId,
+  LocationRecord,
+  Observation,
+  RecommendationResponse,
+  ScenarioNarration
+} from "@/lib/types";
 
 const locations = locationsData as LocationRecord[];
 const deadZones = deadZonesData as DeadZone[];
@@ -63,11 +79,17 @@ export default function Home() {
   const [presentationMode, setPresentationMode] = useState(false);
   const [themeChoice, setThemeChoice] = useState<ThemeChoice>("system");
   const [selectedAIModel, setSelectedAIModel] = useState<AIModelChoice>("nemotron");
+  const [selectedInterventionIds, setSelectedInterventionIds] = useState<InterventionId[]>([]);
+  const [scenarioNarration, setScenarioNarration] = useState<ScenarioNarration | null>(null);
+  const [scenarioNarrationLoading, setScenarioNarrationLoading] = useState(false);
   const activeKeysRef = useRef(new Set<string>());
   const firedChordsRef = useRef(new Set<string>());
   const shiftedSequenceRef = useRef("");
   const shiftedSequenceTimeRef = useRef(0);
   const logoClicksRef = useRef<number[]>([]);
+  // Monotonically increasing request ID to discard stale async responses.
+  const recommendationRequestId = useRef(0);
+  const scenarioRequestId       = useRef(0);
 
   const filteredDeadZones = useMemo(() => {
     const sourceDeadZones = demoMode ? deadZones : deadZones.filter((deadZone) => deadZone.selectedActions.includes(selectedAction));
@@ -91,6 +113,26 @@ export default function Home() {
     [selectedDeadZone.id]
   );
 
+  const simulationContext = useMemo<SimulationContext>(
+    () => ({
+      trafficProximityPercentile: ejContext.trafficProximityPercentile,
+      heatExposurePercentile: ejContext.heatExposurePercentile,
+      householdsWithoutVehiclePercent: censusContext.householdsWithoutVehiclePercent,
+      youthSharePercent: censusContext.youthSharePercent
+    }),
+    []
+  );
+
+  const scenarioProjection = useMemo(
+    () => projectScenario(selectedDeadZone, selectedInterventionIds, simulationContext),
+    [selectedDeadZone, selectedInterventionIds, simulationContext]
+  );
+
+  const interventionRanking = useMemo(
+    () => rankInterventions(selectedDeadZone, simulationContext),
+    [selectedDeadZone, simulationContext]
+  );
+
   useEffect(() => {
     const defaults = getDemoDefaults();
 
@@ -105,6 +147,7 @@ export default function Home() {
         setSelectedLocation(demoLocation);
         setSelectedAction(defaults.selectedAction);
         setSelectedDeadZoneId(defaults.selectedDeadZoneId);
+        setSelectedInterventionIds(defaults.selectedInterventionIds);
       }
     }
 
@@ -205,6 +248,10 @@ export default function Home() {
     setRecommendation(null);
     setRecommendationError(null);
     setAnalysisSubmitted(false);
+    setScenarioNarration(null);
+    // Invalidate any in-flight requests so stale responses are discarded.
+    recommendationRequestId.current++;
+    scenarioRequestId.current++;
   }, [selectedAIModel, selectedActionLabel, selectedDeadZone.id, selectedLocation.name]);
 
   function handleLogoClick() {
@@ -263,19 +310,109 @@ export default function Home() {
     setSelectedLocation(locations[0]);
     setSelectedAction("school-commute");
     setSelectedDeadZoneId(deadZones[0].id);
+    setSelectedInterventionIds([]);
+    setScenarioNarration(null);
     window.history.replaceState(null, "", window.location.pathname);
   }
 
-  function handleCustomLocation(location: LocationRecord) {
+  const handleSelectDeadZone = useCallback((id: string) => {
+    setSelectedDeadZoneId(id);
+    setSelectedInterventionIds([]);
+    setScenarioNarration(null);
+  }, []);
+
+  const handleSelectAction = useCallback((action: ClimateActionId) => {
+    setSelectedAction(action);
+    setSelectedInterventionIds([]);
+    setScenarioNarration(null);
+  }, []);
+
+  const handleSelectLocation = useCallback((location: LocationRecord) => {
+    setSelectedLocation(location);
+    setSelectedInterventionIds([]);
+    setScenarioNarration(null);
+  }, []);
+
+  const handleCustomLocation = useCallback((location: LocationRecord) => {
+    setSelectedInterventionIds([]);
+    setScenarioNarration(null);
     setSelectedLocation({
       ...location,
       type: "custom",
       description:
         location.description || "Custom place selected by the user. Greenlight is using local barrier analysis for this MVP."
     });
+  }, []);
+
+  const handleToggleIntervention = useCallback((id: InterventionId) => {
+    setScenarioNarration(null);
+    setSelectedInterventionIds((current) =>
+      current.includes(id) ? current.filter((value) => value !== id) : [...current, id]
+    );
+  }, []);
+
+  function buildLocalScenarioNarration(): ScenarioNarration {
+    const labels = getInterventions(selectedInterventionIds).map((intervention) => intervention.label);
+    const fixList = labels.length > 0 ? labels.join(", ") : "the selected improvements";
+
+    return {
+      summary: `Greenlight projected the effect of ${fixList} on ${selectedDeadZone.name}. The numbers above come from the deterministic simulation; this explanation only describes what they mean.`,
+      whyItHelps: "These improvements target the specific access, safety, and behavior factors that make this barrier score high, so easing them lowers the projected barrier score.",
+      adoptionRationale: "Projected adoption reflects how visible, safe, and convenient each improvement makes the climate-friendly choice, scaled by local fix feasibility.",
+      uncertainty: "Projections use synthetic coefficients and local context. Real outcomes depend on verification, maintenance, and community response.",
+      verificationChecklist: [
+        "Confirm the barrier and the proposed improvement on site with adult supervision.",
+        "Measure a simple before-and-after count for one week.",
+        "Share the projection and observed result with the responsible decision maker."
+      ]
+    };
+  }
+
+  async function runScenarioNarration() {
+    if (selectedInterventionIds.length === 0) return;
+
+    const requestId = ++scenarioRequestId.current;
+    setScenarioNarrationLoading(true);
+
+    if (demoMode && aiMode === "mock") {
+      if (requestId !== scenarioRequestId.current) return;
+      setScenarioNarration(buildLocalScenarioNarration());
+      setScenarioNarrationLoading(false);
+      return;
+    }
+
+    const payload = {
+      task: "scenario",
+      locationName: selectedLocation.name,
+      selectedAction: selectedActionLabel,
+      deadZone: selectedDeadZone,
+      projection: scenarioProjection,
+      interventionLabels: getInterventions(selectedInterventionIds).map((i) => i.label),
+      forceMockAI: demoMode && aiMode === "mock",
+      preferredModel: selectedAIModel
+    };
+
+    try {
+      const response = await fetch("/api/recommendation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (requestId !== scenarioRequestId.current) return;
+      if (!response.ok) throw new Error(`Scenario route returned ${response.status}`);
+      const data = (await response.json()) as RecommendationResponse;
+      if (requestId !== scenarioRequestId.current) return;
+      setScenarioNarration(data.scenarioNarration ?? buildLocalScenarioNarration());
+    } catch {
+      if (requestId !== scenarioRequestId.current) return;
+      setScenarioNarration(buildLocalScenarioNarration());
+    } finally {
+      if (requestId === scenarioRequestId.current) setScenarioNarrationLoading(false);
+    }
   }
 
   async function runRecommendation() {
+    const requestId = ++recommendationRequestId.current;
     setAnalysisSubmitted(true);
 
     if (demoMode && aiMode === "mock") {
@@ -290,10 +427,12 @@ export default function Home() {
     setRecommendationError(null);
 
     const payload = {
+      task: "explanation",
       selectedAction: selectedActionLabel,
       locationName: selectedLocation.name,
       deadZone: selectedDeadZone,
       scoringBreakdown: selectedDeadZone.scoringBreakdown,
+      scoreExplanation: explainScore(selectedDeadZone),
       observedEvidence: selectedDeadZone.observedEvidence,
       censusContext,
       ejContext,
@@ -306,22 +445,18 @@ export default function Home() {
     try {
       const response = await fetch("/api/recommendation", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
-      if (!response.ok) {
-        throw new Error(`Recommendation route returned ${response.status}`);
-      }
-
+      if (requestId !== recommendationRequestId.current) return;
+      if (!response.ok) throw new Error(`Recommendation route returned ${response.status}`);
       const data = (await response.json()) as RecommendationResponse;
-
+      if (requestId !== recommendationRequestId.current) return;
       setRecommendation(data);
       setRecommendationError(data.error ?? null);
       setApiStatus(data.mode === "live" ? "connected" : data.error ? "failed" : apiStatus);
     } catch (error) {
+      if (requestId !== recommendationRequestId.current) return;
       setRecommendation({
         summary: `${selectedDeadZone.name} is ranked by deterministic scoring, but the recommendation route could not be reached.`,
         likelyCause: "The local explanation service did not respond.",
@@ -346,7 +481,7 @@ export default function Home() {
       setRecommendationError("Greenlight completed the analysis with its reliability layer.");
       setApiStatus("failed");
     } finally {
-      setLoadingRecommendation(false);
+      if (requestId === recommendationRequestId.current) setLoadingRecommendation(false);
     }
   }
 
@@ -367,8 +502,7 @@ export default function Home() {
             <div>
               <h2 className="font-heading text-4xl font-bold">Find the local block</h2>
               <p className="mt-3 max-w-3xl leading-7 text-[var(--text-secondary)]">
-                Pick a place and goal. Greenlight ranks barriers first, then asks AI to explain uncertainty, verification,
-                and realistic fixes.
+                Pick a place and goal. Greenlight ranks barriers, simulates improvements, and asks AI to explain what the numbers mean.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -382,12 +516,12 @@ export default function Home() {
               <LocationSearch
                 locations={locations}
                 selectedLocation={selectedLocation}
-                onSelectLocation={setSelectedLocation}
+                onSelectLocation={handleSelectLocation}
                 onCustomLocation={handleCustomLocation}
               />
             </ScrollReveal>
             <ScrollReveal delay={80}>
-              <ActionSelector selectedAction={selectedAction} onSelectAction={setSelectedAction} />
+              <ActionSelector selectedAction={selectedAction} onSelectAction={handleSelectAction} />
             </ScrollReveal>
             <ScrollReveal delay={120}>
               <MapView
@@ -395,7 +529,7 @@ export default function Home() {
                 deadZones={filteredDeadZones}
                 selectedDeadZone={selectedDeadZone}
                 presentationMode={presentationMode}
-                onSelectDeadZone={(deadZone) => setSelectedDeadZoneId(deadZone.id)}
+                onSelectDeadZone={(deadZone) => handleSelectDeadZone(deadZone.id)}
               />
             </ScrollReveal>
 
@@ -415,11 +549,34 @@ export default function Home() {
                       deadZone={deadZone}
                       selected={deadZone.id === selectedDeadZone.id}
                       presentationMode={presentationMode}
-                      onSelect={(nextDeadZone) => setSelectedDeadZoneId(nextDeadZone.id)}
+                      onSelect={(nextDeadZone) => handleSelectDeadZone(nextDeadZone.id)}
                     />
                   ))}
                 </div>
               </section>
+            </ScrollReveal>
+
+            <ScrollReveal delay={180}>
+              <div className="space-y-5">
+                <InterventionSelector
+                  deadZone={selectedDeadZone}
+                  selectedInterventionIds={selectedInterventionIds}
+                  onToggle={handleToggleIntervention}
+                />
+                <ProjectedImpactPanel
+                  projection={scenarioProjection}
+                  narration={scenarioNarration}
+                  narrationLoading={scenarioNarrationLoading}
+                  onExplain={runScenarioNarration}
+                  presentationMode={presentationMode}
+                />
+                <InterventionRankingPanel
+                  rankings={interventionRanking}
+                  selectedInterventionIds={selectedInterventionIds}
+                  onToggleIntervention={handleToggleIntervention}
+                  presentationMode={presentationMode}
+                />
+              </div>
             </ScrollReveal>
 
             <ScrollReveal delay={200}>
@@ -436,28 +593,30 @@ export default function Home() {
               </div>
             </ScrollReveal>
 
-            {analysisSubmitted ? (
-              <ScrollReveal delay={80}>
-                <AIExplanationPanel
-                  deadZone={selectedDeadZone}
-                  recommendation={recommendation}
-                  loading={loadingRecommendation}
-                  error={recommendationError}
-                  presentationMode={presentationMode}
-                />
-              </ScrollReveal>
-            ) : null}
-            {recommendation && !loadingRecommendation ? (
-              <ScrollReveal delay={120}>
-                <RecommendationPanel recommendation={recommendation} presentationMode={presentationMode} />
-              </ScrollReveal>
-            ) : null}
-
-            {recommendation && !loadingRecommendation ? (
-              <ScrollReveal delay={160}>
-                <VerificationChecklist recommendation={recommendation} presentationMode={presentationMode} />
-              </ScrollReveal>
-            ) : null}
+            {/* aria-live so assistive tech announces when AI results arrive */}
+            <div aria-live="polite" aria-atomic="false" className="space-y-5">
+              {analysisSubmitted ? (
+                <ScrollReveal delay={80}>
+                  <AIExplanationPanel
+                    deadZone={selectedDeadZone}
+                    recommendation={recommendation}
+                    loading={loadingRecommendation}
+                    error={recommendationError}
+                    presentationMode={presentationMode}
+                  />
+                </ScrollReveal>
+              ) : null}
+              {recommendation && !loadingRecommendation ? (
+                <ScrollReveal delay={120}>
+                  <RecommendationPanel recommendation={recommendation} presentationMode={presentationMode} />
+                </ScrollReveal>
+              ) : null}
+              {recommendation && !loadingRecommendation ? (
+                <ScrollReveal delay={160}>
+                  <VerificationChecklist recommendation={recommendation} presentationMode={presentationMode} />
+                </ScrollReveal>
+              ) : null}
+            </div>
           </div>
         </div>
       </section>
