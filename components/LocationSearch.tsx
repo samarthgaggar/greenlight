@@ -103,7 +103,7 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
       <label className="mt-5 block text-sm font-bold text-[var(--text-primary)]" htmlFor="location-search">
         Search for a location
       </label>
-      <div className="relative mt-2">
+      <div className="mt-2">
         <input
           id="location-search"
           className="h-12 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--data)]"
@@ -129,7 +129,7 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
             id="location-results"
             role="listbox"
             aria-label="Location suggestions"
-            className="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 max-h-[26rem] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
+            className="mt-1.5 max-h-[26rem] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
           >
             {suggestions.map((location, index) => {
               const active = activeIndex === index;
@@ -142,7 +142,7 @@ export function LocationSearch({ locations, selectedLocation, onSelectLocation, 
                   role="option"
                   aria-selected={active}
                   className={`flex w-full items-start justify-between gap-3 border-b border-[var(--border)] p-3 text-left last:border-b-0 ${
-                    active ? "bg-[var(--data-soft)]" : "bg-[var(--surface)] hover:bg-[var(--surface-elevated)]"
+                    active ? "bg-[var(--data-soft)]" : "hover:bg-[var(--surface-elevated)]"
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseDown={(event) => event.preventDefault()}
