@@ -1,9 +1,9 @@
-import { Hero } from "@/components/Hero";
+import { PrismaHero } from "@/components/ui/prisma-hero";
 
 export default function Home() {
   return (
     <main className="app-shell">
-      <Hero />
+      <PrismaHero />
     </main>
   );
 }

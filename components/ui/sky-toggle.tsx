@@ -6,12 +6,13 @@ type SkyToggleProps = {
   checked: boolean;
   onChange: (checked: boolean) => void;
   className?: string;
+  style?: React.CSSProperties;
   "aria-label"?: string;
 };
 
-export function SkyToggle({ checked, onChange, className, "aria-label": ariaLabel }: SkyToggleProps) {
+export function SkyToggle({ checked, onChange, className, style, "aria-label": ariaLabel }: SkyToggleProps) {
   return (
-    <div className={cn("sky-toggle", className)}>
+    <div className={cn("sky-toggle", className)} style={style}>
       <label className="theme-switch">
         <input
           type="checkbox"

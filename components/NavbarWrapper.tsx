@@ -1,11 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useApp } from "@/lib/appContext";
 import { Navbar } from "@/components/Navbar";
 import { DemoReadyBadge } from "@/components/DemoReadyBadge";
 import { DeveloperSettingsPanel } from "@/components/DeveloperSettingsPanel";
 
 export function NavbarWrapper() {
+  const pathname = usePathname();
   const {
     demoMode,
     developerSettingsOpen,
@@ -22,10 +24,11 @@ export function NavbarWrapper() {
     handleResetDemoFlow,
     setDeveloperSettingsOpen
   } = useApp();
+  const hideNavbar = pathname === "/";
 
   return (
     <>
-      <Navbar onLogoClick={handleLogoClick} />
+      {hideNavbar ? null : <Navbar onLogoClick={handleLogoClick} />}
       <DemoReadyBadge active={demoMode} />
       <DeveloperSettingsPanel
         open={developerSettingsOpen}

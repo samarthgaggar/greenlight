@@ -128,6 +128,13 @@ button:disabled {
   background: color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
+.noise-overlay {
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.28) 0 1px, transparent 1px),
+    radial-gradient(circle at 75% 65%, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px);
+  background-size: 3px 3px, 5px 5px;
+}
+
 /* ─── Global focus ring (accessibility) ─────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--primary);

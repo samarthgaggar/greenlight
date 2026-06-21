@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { SkyToggle } from "@/components/ui/sky-toggle";
 
@@ -18,7 +19,7 @@ function getInitialTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ className, style }: { className?: string; style?: CSSProperties }) {
   const [theme, setTheme] = useState<Theme>("dark");
   const [ready, setReady] = useState(false);
 
@@ -45,11 +46,13 @@ export function ThemeToggle() {
   }
 
   if (!ready) {
-    return <div className="sky-toggle sky-toggle--placeholder" aria-hidden="true" />;
+    return <div className={`sky-toggle sky-toggle--placeholder ${className ?? ""}`} style={style} aria-hidden="true" />;
   }
 
   return (
     <SkyToggle
+      className={className}
+      style={style}
       checked={theme === "dark"}
       onChange={handleToggle}
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
