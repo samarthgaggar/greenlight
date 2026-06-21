@@ -1,12 +1,25 @@
-const guardrails = [
-  "Public map data may be incomplete.",
-  "Greenlight separates evidence from inference.",
-  "Safety claims require human verification.",
-  "Demographic data is used only to prioritize fairness and access.",
-  "Students should not inspect unsafe roads alone.",
-  "The app recommends decisions; it does not make final infrastructure judgments.",
-  "Projected impacts are estimates from synthetic coefficients and require verification.",
-  "The AI explains deterministic scores and projections; it never generates the numbers."
+import {
+  AlertTriangle,
+  BarChart2,
+  Brain,
+  EyeOff,
+  FileSearch,
+  GitBranch,
+  Map,
+  ShieldCheck,
+  UserCheck
+} from "lucide-react";
+
+const guardrails: Array<{ icon: typeof ShieldCheck; text: string; color: string }> = [
+  { icon: Map,          text: "Map data may be incomplete.",                                    color: "var(--data)"   },
+  { icon: GitBranch,    text: "Evidence and inference are always kept separate.",               color: "var(--primary)"},
+  { icon: UserCheck,    text: "Safety claims require human verification.",                      color: "var(--warning)"},
+  { icon: EyeOff,       text: "Demographic data is used only to prioritize fairness.",          color: "var(--equity)" },
+  { icon: AlertTriangle,text: "Students should not inspect unsafe roads alone.",                color: "var(--danger)" },
+  { icon: Brain,        text: "The app recommends; it does not make infrastructure decisions.", color: "var(--primary)"},
+  { icon: BarChart2,    text: "Projected impacts are estimates — verify locally before acting.",color: "var(--warning)"},
+  { icon: FileSearch,   text: "AI explains scores. It never generates or modifies numbers.",    color: "var(--data)"   },
+  { icon: ShieldCheck,  text: "No private or personally identifiable data is collected.",       color: "var(--equity)" }
 ];
 
 export function ResponsibleAISection() {
@@ -14,11 +27,19 @@ export function ResponsibleAISection() {
     <section id="responsible-ai" className="section">
       <div className="section-inner">
         <div className="panel rounded-xl p-6 md:p-8">
-          <h2 className="font-heading text-3xl font-bold">What Greenlight Does Not Assume</h2>
-          <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {guardrails.map((guardrail) => (
-              <div key={guardrail} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="text-sm leading-6 text-[var(--text-secondary)]">{guardrail}</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {guardrails.map(({ icon: Icon, text, color }) => (
+              <div
+                key={text}
+                className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 transition-colors hover:bg-[var(--surface-elevated)]"
+              >
+                <span
+                  className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{ background: `color-mix(in srgb, ${color} 12%, var(--surface-elevated))` }}
+                >
+                  <Icon size={16} aria-hidden="true" style={{ color }} />
+                </span>
+                <p className="text-sm font-semibold leading-snug text-[var(--text-secondary)]">{text}</p>
               </div>
             ))}
           </div>

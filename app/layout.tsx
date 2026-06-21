@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AppProvider } from "@/lib/appContext";
+import { NavbarWrapper } from "@/components/NavbarWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,12 +39,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
+        <AppProvider>
+          <NavbarWrapper />
+          {children}
+        </AppProvider>
+      </body>
     </html>
   );
 }
