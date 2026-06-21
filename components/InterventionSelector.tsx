@@ -17,14 +17,23 @@ export function InterventionSelector({ deadZone, selectedInterventionIds, onTogg
     return applicable.length > 0 ? applicable : interventions;
   }, [deadZone]);
 
+  const selectedCount = selectedInterventionIds.filter((id) =>
+    available.some((i) => i.id === id)
+  ).length;
+
   return (
-    <div className="soft-panel rounded-xl p-5">
-      <h2 className="font-heading text-2xl font-bold">Scenario simulator</h2>
-      <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-        Select sustainability improvements for <span className="font-bold text-[var(--text-primary)]">{deadZone.name}</span>. Greenlight
-        recalculates the projected impact instantly.
-      </p>
-      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+    <div className="soft-panel rounded-xl p-4 ring-1 ring-[color-mix(in_srgb,var(--primary)_25%,transparent)]">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">Improvements</p>
+        {selectedCount > 0 ? (
+          <span className="rounded-full bg-[var(--primary)] px-2 py-0.5 text-[10px] font-bold text-[var(--bg)]">
+            {selectedCount} selected
+          </span>
+        ) : (
+          <span className="text-[10px] text-[var(--text-muted)]">tap to add</span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {available.map((intervention) => {
           const selected = selectedInterventionIds.includes(intervention.id);
           const Icon = intervention.icon;
@@ -33,26 +42,26 @@ export function InterventionSelector({ deadZone, selectedInterventionIds, onTogg
             <button
               key={intervention.id}
               type="button"
-              className={`flex items-start gap-3 rounded-lg border px-3 py-3 text-left transition ${
+              title={intervention.description}
+              aria-pressed={selected}
+              onClick={() => onToggle(intervention.id)}
+              className={`group flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all duration-200 ${
                 selected
                   ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_14%,var(--surface))]"
-                  : "border-[var(--border)] bg-[var(--surface)] hover:border-[color-mix(in_srgb,var(--primary)_45%,var(--border))]"
+                  : "border-[var(--border)] bg-[var(--surface)] hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))]"
               }`}
-              onClick={() => onToggle(intervention.id)}
-              aria-pressed={selected}
             >
               <span
-                className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${
                   selected
-                    ? "border-[var(--primary)] text-[var(--primary)]"
-                    : "border-[var(--border)] text-[var(--text-secondary)]"
+                    ? "bg-[var(--primary)] text-[var(--bg)]"
+                    : "bg-[var(--surface-elevated)] text-[var(--text-secondary)] group-hover:text-[var(--primary)]"
                 }`}
               >
-                <Icon size={18} />
+                <Icon size={14} aria-hidden="true" />
               </span>
-              <span className="min-w-0">
-                <span className="block font-bold text-[var(--text-primary)]">{intervention.label}</span>
-                <span className="mt-0.5 block text-sm leading-5 text-[var(--text-secondary)]">{intervention.description}</span>
+              <span className={`text-xs font-bold leading-tight ${selected ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                {intervention.label}
               </span>
             </button>
           );

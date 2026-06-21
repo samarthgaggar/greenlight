@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -10,63 +12,36 @@ type NavbarProps = {
 };
 
 const NAV_LINKS = [
-  { label: "Map",        href: "#workspace",       section: "workspace"      },
-  { label: "AI",         href: "#recommendation",  section: "recommendation" },
-  { label: "Guardrails", href: "#responsible-ai",  section: "responsible-ai" },
-  { label: "Data",       href: "#data",            section: "data"           }
+  { label: "Home",       href: "/",            match: (p: string) => p === "/"           },
+  { label: "Simulator",  href: "/simulator",   match: (p: string) => p === "/simulator"  },
+  { label: "Map",        href: "/map",         match: (p: string) => p === "/map"        },
+  { label: "AI",         href: "/ai",          match: (p: string) => p === "/ai"         },
+  { label: "Guardrails", href: "/guardrails",  match: (p: string) => p === "/guardrails" },
+  { label: "Data",       href: "/data",        match: (p: string) => p === "/data"       }
 ] as const;
 
 export function Navbar({ onLogoClick }: NavbarProps) {
-  const [activeSection, setActiveSection] = useState<string>("");
-  const [mobileOpen,    setMobileOpen]    = useState(false);
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // Track which section is currently visible.
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        }
-      },
-      { threshold: 0.2, rootMargin: "-72px 0px 0px 0px" }
-    );
-
-    NAV_LINKS.forEach(({ section }) => {
-      const el = document.getElementById(section);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Close mobile menu on Escape or outside click.
   useEffect(() => {
     if (!mobileOpen) return;
-
     function handleKey(event: KeyboardEvent) {
       if (event.key === "Escape") setMobileOpen(false);
     }
-
     function handleClick(event: MouseEvent) {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setMobileOpen(false);
       }
     }
-
-    document.addEventListener("keydown",   handleKey);
+    document.addEventListener("keydown", handleKey);
     document.addEventListener("mousedown", handleClick);
     return () => {
-      document.removeEventListener("keydown",   handleKey);
+      document.removeEventListener("keydown", handleKey);
       document.removeEventListener("mousedown", handleClick);
     };
   }, [mobileOpen]);
-
-  function handleNavClick() {
-    setMobileOpen(false);
-  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-xl">
@@ -75,30 +50,30 @@ export function Navbar({ onLogoClick }: NavbarProps) {
         aria-label="Main navigation"
       >
         {/* Logo */}
-        <a
-          href="#top"
+        <Link
+          href="/"
           className="flex items-center gap-3 text-[var(--text-primary)] no-underline"
           onClick={onLogoClick}
-          aria-label="Greenlight — go to top"
+          aria-label="Greenlight — go to home"
         >
           <Image src="/greenlight-logo.svg" alt="" width={36} height={36} priority className="rounded-lg" />
           <span className="font-heading text-xl font-bold">Greenlight</span>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <div className="hidden items-center gap-6 text-sm font-semibold md:flex">
-          {NAV_LINKS.map(({ label, href, section }) => {
-            const active = activeSection === section;
+          {NAV_LINKS.map(({ label, href, match }) => {
+            const active = match(pathname);
             return (
-              <a
-                key={section}
+              <Link
+                key={href}
                 href={href}
                 className={`relative py-1 transition-colors ${
                   active
                     ? "text-[var(--primary)]"
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
-                aria-current={active ? "location" : undefined}
+                aria-current={active ? "page" : undefined}
               >
                 {label}
                 {active ? (
@@ -107,7 +82,7 @@ export function Navbar({ onLogoClick }: NavbarProps) {
                     aria-hidden="true"
                   />
                 ) : null}
-              </a>
+              </Link>
             );
           })}
         </div>
@@ -115,7 +90,6 @@ export function Navbar({ onLogoClick }: NavbarProps) {
         {/* Right controls */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {/* Mobile menu toggle */}
           <button
             type="button"
             className="icon-button md:hidden"
@@ -139,27 +113,26 @@ export function Navbar({ onLogoClick }: NavbarProps) {
         aria-hidden={!mobileOpen}
       >
         <nav className="flex flex-col px-5 pb-4 pt-2" aria-label="Mobile navigation">
-          {NAV_LINKS.map(({ label, href, section }) => {
-            const active = activeSection === section;
+          {NAV_LINKS.map(({ label, href, match }) => {
+            const active = match(pathname);
             return (
-              <a
-                key={section}
+              <Link
+                key={href}
                 href={href}
-                onClick={handleNavClick}
+                onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition-colors ${
                   active
                     ? "bg-[var(--selected-bg)] text-[var(--primary)]"
                     : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                 }`}
-                aria-current={active ? "location" : undefined}
+                aria-current={active ? "page" : undefined}
               >
-                {active ? (
-                  <span className="h-2 w-2 rounded-full bg-[var(--primary)]" aria-hidden="true" />
-                ) : (
-                  <span className="h-2 w-2 rounded-full bg-[var(--border)]" aria-hidden="true" />
-                )}
+                <span
+                  className={`h-2 w-2 rounded-full ${active ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
+                  aria-hidden="true"
+                />
                 {label}
-              </a>
+              </Link>
             );
           })}
         </nav>

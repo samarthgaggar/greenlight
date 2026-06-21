@@ -232,4 +232,4 @@ No automated test suite is defined yet.
 
 ## License
 
-Hackathon MVP — contact Samarth Gaggar or Braedyn Mendonca for inquiries.
+Hackathon MVP — see repository owner for usage terms.
