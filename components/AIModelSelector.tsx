@@ -27,12 +27,9 @@ export function AIModelSelector({ value, onChange, disabled = false }: AIModelSe
   const selectedIndex = options.findIndex((option) => option.id === value);
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--surface-elevated)_70%,transparent)] p-3">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">AI engine</p>
-          <p className="mt-1 text-sm font-semibold text-[var(--text-secondary)]">Choose how Greenlight writes the explanation.</p>
-        </div>
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 backdrop-blur-md">
+      <div className="mb-3">
+        <p className="workspace-eyebrow">AI engine</p>
       </div>
 
       <div className="relative grid grid-cols-2 gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1">

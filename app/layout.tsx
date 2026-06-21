@@ -7,19 +7,21 @@ import { NavbarWrapper } from "@/components/NavbarWrapper";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-body",
+  weight: ["400", "500", "600", "700"],
   display: "swap"
 });
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-heading",
+  weight: ["400", "500", "600", "700"],
   display: "swap"
 });
 
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f4fbf7" },
-    { media: "(prefers-color-scheme: dark)",  color: "#06130e" }
+    { media: "(prefers-color-scheme: dark)",  color: "#06150f" }
   ]
 };
 
@@ -41,8 +43,8 @@ export default function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
         <AppProvider>
           <NavbarWrapper />
           {children}

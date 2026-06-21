@@ -14,7 +14,7 @@ type AnalysisSubmitPanelProps = {
 
 export function AnalysisSubmitPanel({ location, actionLabel, deadZone, model, loading, onSubmit }: AnalysisSubmitPanelProps) {
   return (
-    <section className="panel rounded-xl p-4">
+    <section className="panel rounded-2xl p-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <InputPill icon={MapPin}    label="Location" value={location.name}                             color="var(--data)"    />
         <InputPill icon={Target}    label="Goal"     value={actionLabel}                               color="var(--primary)" />

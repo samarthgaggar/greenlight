@@ -1,24 +1,16 @@
 "use client";
 
-import Image from "next/image";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SITE_NAV_LINKS } from "@/lib/nav-links";
 
 type NavbarProps = {
   onLogoClick?: () => void;
 };
-
-const NAV_LINKS = [
-  { label: "Home",       href: "/",            match: (p: string) => p === "/"           },
-  { label: "Simulator",  href: "/simulator",   match: (p: string) => p === "/simulator"  },
-  { label: "Map",        href: "/map",         match: (p: string) => p === "/map"        },
-  { label: "AI",         href: "/ai",          match: (p: string) => p === "/ai"         },
-  { label: "Guardrails", href: "/guardrails",  match: (p: string) => p === "/guardrails" },
-  { label: "Data",       href: "/data",        match: (p: string) => p === "/data"       }
-] as const;
 
 export function Navbar({ onLogoClick }: NavbarProps) {
   const pathname = usePathname();
@@ -44,93 +36,72 @@ export function Navbar({ onLogoClick }: NavbarProps) {
   }, [mobileOpen]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-xl">
-      <nav
-        className="mx-auto flex h-16 w-[min(1180px,100%)] items-center justify-between px-5"
-        aria-label="Main navigation"
-      >
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-3 text-[var(--text-primary)] no-underline"
-          onClick={onLogoClick}
-          aria-label="Greenlight — go to home"
-        >
-          <Image src="/greenlight-logo.svg" alt="" width={36} height={36} priority className="rounded-lg" />
-          <span className="font-heading text-xl font-bold">Greenlight</span>
-        </Link>
-
-        {/* Desktop links */}
-        <div className="hidden items-center gap-6 text-sm font-semibold md:flex">
-          {NAV_LINKS.map(({ label, href, match }) => {
+    <header className="site-header">
+      <nav aria-label="Main navigation" className="site-header-nav">
+        <div className="site-nav-pill">
+          <Link
+            href="/"
+            onClick={onLogoClick}
+            className="site-nav-link site-nav-link--home hidden sm:inline"
+            aria-label="Greenlight home"
+          >
+            Home
+          </Link>
+          <span className="site-nav-divider hidden sm:inline" aria-hidden="true" />
+          {SITE_NAV_LINKS.map(({ label, href, match }) => {
             const active = match(pathname);
             return (
               <Link
                 key={href}
                 href={href}
-                className={`relative py-1 transition-colors ${
-                  active
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
                 aria-current={active ? "page" : undefined}
+                className={`site-nav-link ${active ? "site-nav-link--active" : ""}`}
               >
                 {label}
-                {active ? (
-                  <span
-                    className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-[var(--primary)]"
-                    aria-hidden="true"
-                  />
-                ) : null}
               </Link>
             );
           })}
-        </div>
-
-        {/* Right controls */}
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
           <button
             type="button"
-            className="icon-button md:hidden"
+            className="site-nav-menu-btn sm:hidden"
             onClick={() => setMobileOpen((open) => !open)}
             aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
           >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            {mobileOpen ? <X size={15} /> : <Menu size={15} />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile nav drawer */}
+      <div className="site-header-toggle">
+        <ThemeToggle style={{ "--toggle-size": "13px" } as CSSProperties} />
+      </div>
+
       <div
         id="mobile-nav"
         ref={mobileMenuRef}
-        className={`absolute left-0 right-0 top-full z-50 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_96%,transparent)] backdrop-blur-xl transition-all duration-200 md:hidden ${
-          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        }`}
+        className={`site-mobile-nav sm:hidden ${mobileOpen ? "site-mobile-nav--open" : ""}`}
         aria-hidden={!mobileOpen}
       >
-        <nav className="flex flex-col px-5 pb-4 pt-2" aria-label="Mobile navigation">
-          {NAV_LINKS.map(({ label, href, match }) => {
+        <nav className="flex flex-col gap-0.5 p-2" aria-label="Mobile navigation">
+          <Link
+            href="/"
+            onClick={() => setMobileOpen(false)}
+            className={`site-mobile-nav-link ${pathname === "/" ? "site-mobile-nav-link--active" : ""}`}
+          >
+            Home
+          </Link>
+          {SITE_NAV_LINKS.map(({ label, href, match }) => {
             const active = match(pathname);
             return (
               <Link
                 key={href}
                 href={href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition-colors ${
-                  active
-                    ? "bg-[var(--selected-bg)] text-[var(--primary)]"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
-                }`}
                 aria-current={active ? "page" : undefined}
+                className={`site-mobile-nav-link ${active ? "site-mobile-nav-link--active" : ""}`}
               >
-                <span
-                  className={`h-2 w-2 rounded-full ${active ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
-                  aria-hidden="true"
-                />
                 {label}
               </Link>
             );

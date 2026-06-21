@@ -9,8 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        heading: ["var(--font-heading)", "Space Grotesk", "Sora", "sans-serif"],
-        body: ["var(--font-body)", "Inter", "sans-serif"]
+        sans: ["var(--font-heading)", "Space Grotesk", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "Space Grotesk", "system-ui", "sans-serif"],
+        body: ["var(--font-body)", "Inter", "system-ui", "sans-serif"]
       },
       colors: {
         bg: "var(--bg)",

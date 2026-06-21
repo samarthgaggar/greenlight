@@ -1,11 +1,99 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SITE_NAV_LINKS } from "@/lib/nav-links";
+
+const FADE_MS = 2000;
+const SLIDE_INTERVAL_MS = 7000;
+
+/** Moody nature scenes — similar exposure so hero text stays legible */
+const BACKGROUND_SLIDES = [
+  {
+    url: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2400&q=85",
+    label: "Misty evergreen forest"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=2400&q=85",
+    label: "Foggy mountain valley"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=2400&q=85",
+    label: "Alpine lake and peaks"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=85",
+    label: "Snow-capped mountain range"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=2400&q=85",
+    label: "Green hills at sunrise"
+  }
+] as const;
+
+function HeroBackgroundSlideshow({ reduceMotion }: { reduceMotion: boolean | null }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    BACKGROUND_SLIDES.forEach(({ url }) => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const id = window.setInterval(() => {
+      setIndex((current) => (current + 1) % BACKGROUND_SLIDES.length);
+    }, SLIDE_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [reduceMotion]);
+
+  const slide = BACKGROUND_SLIDES[index];
+
+  if (reduceMotion) {
+    return (
+      <div
+        aria-hidden="true"
+        className="absolute -inset-[7%] bg-cover bg-center brightness-[0.7] saturate-[1.05]"
+        style={{ backgroundImage: `url(${BACKGROUND_SLIDES[0].url})` }}
+      />
+    );
+  }
+
+  return (
+    <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={slide.url}
+          className="absolute -inset-[7%] bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${slide.url})`,
+            filter: "brightness(0.7) saturate(1.05)"
+          }}
+          initial={{ opacity: 0, scale: 1.06 }}
+          animate={{
+            opacity: 1,
+            scale: [1.055, 1.085],
+            x: ["-0.7%", "0.7%"],
+            y: ["-0.55%", "0.65%"]
+          }}
+          exit={{ opacity: 0 }}
+          transition={{
+            opacity: { duration: FADE_MS / 1000, ease: "easeInOut" },
+            scale: { duration: 26, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+            x: { duration: 26, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+            y: { duration: 26, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }
+          }}
+        />
+      </AnimatePresence>
+    </div>
+  );
+}
 
 interface WordsPullUpProps {
   text: string;
@@ -86,72 +174,14 @@ export function WordsPullUpMultiStyle({ segments, className = "", style }: Words
   );
 }
 
-const navItems = [
-  { label: "Map", href: "/map" },
-  { label: "Analysis", href: "/analysis" },
-  { label: "Guardrails", href: "/guardrails" },
-  { label: "Data", href: "/data" }
-] as const;
-
-const baseLayer =
-  "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2400&q=85";
-const lightLayer =
-  "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=2200&q=80";
-
 export function PrismaHero() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <section id="top" className="w-full px-2 pb-4 pt-2 sm:px-3 md:px-4">
       <div className="mx-auto w-full">
-        <div className="relative min-h-[calc(100svh-1rem)] overflow-hidden rounded-[1.35rem] bg-[#06150f] shadow-[0_28px_90px_rgba(6,19,14,0.24)] md:min-h-[calc(100vh-1.5rem)] md:rounded-[1.65rem]">
-          <motion.div
-            aria-hidden="true"
-            className="absolute -inset-[7%] bg-cover bg-center"
-            style={{
-              backgroundImage: `url(${baseLayer})`,
-              filter: shouldReduceMotion ? "brightness(0.7) saturate(1.08)" : undefined
-            }}
-            animate={
-              shouldReduceMotion
-                ? undefined
-                : {
-                    scale: [1.055, 1.085],
-                    x: ["-0.7%", "0.7%"],
-                    y: ["-0.55%", "0.65%"],
-                    filter: [
-                      "brightness(0.68) saturate(1.02)",
-                      "brightness(0.74) saturate(1.1)"
-                    ]
-                  }
-            }
-            transition={
-              shouldReduceMotion
-                ? undefined
-                : { duration: 26, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }
-            }
-          />
-
-          <motion.div
-            aria-hidden="true"
-            className="absolute -inset-[10%] bg-cover bg-center opacity-45 mix-blend-screen"
-            style={{ backgroundImage: `url(${lightLayer})` }}
-            animate={
-              shouldReduceMotion
-                ? undefined
-                : {
-                    scale: [1.06, 1.025],
-                    x: ["0.8%", "-0.65%"],
-                    y: ["0.65%", "-0.7%"],
-                    opacity: [0.24, 0.34]
-                  }
-            }
-            transition={
-              shouldReduceMotion
-                ? undefined
-                : { duration: 22, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }
-            }
-          />
+        <div className="relative min-h-[calc(100svh-1rem)] overflow-hidden rounded-[1.35rem] bg-[#06150f] font-sans shadow-[0_28px_90px_rgba(6,19,14,0.24)] md:min-h-[calc(100vh-1.5rem)] md:rounded-[1.65rem]">
+          <HeroBackgroundSlideshow reduceMotion={shouldReduceMotion} />
 
           <div
             aria-hidden="true"
@@ -166,12 +196,12 @@ export function PrismaHero() {
             aria-label="Hero navigation"
             className="absolute left-4 top-0 z-20 sm:left-1/2 sm:-translate-x-1/2"
           >
-            <div className="flex items-center gap-4 rounded-b-[1.15rem] bg-black px-4 py-3 shadow-[0_18px_45px_rgba(0,0,0,0.28)] sm:gap-7 sm:px-7 md:gap-10 md:rounded-b-[1.35rem] lg:gap-12">
-              {navItems.map((item) => (
+            <div className="flex items-center gap-4 rounded-b-[1.15rem] bg-black px-4 py-3 font-sans shadow-[0_18px_45px_rgba(0,0,0,0.28)] sm:gap-7 sm:px-7 md:gap-10 md:rounded-b-[1.35rem] lg:gap-12">
+              {SITE_NAV_LINKS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-[0.52rem] font-extrabold uppercase tracking-[0.15em] text-[#e1e0cc]/75 transition-colors hover:text-[#fff8e8] sm:text-[0.62rem] md:text-[0.67rem]"
+                  className="font-sans text-[0.52rem] font-bold uppercase tracking-[0.15em] text-[#e1e0cc]/75 transition-colors hover:text-[#fff8e8] sm:text-[0.62rem] md:text-[0.67rem]"
                 >
                   {item.label}
                 </Link>
