@@ -1,235 +1,177 @@
 # Greenlight
 
-**Find what blocks local climate action — and what happens if you fix it.**
+Greenlight is an AI-powered decision support tool that helps schools identify barriers to sustainable behavior and evaluate which improvements will have the greatest local impact.
 
-Greenlight is a Next.js hackathon MVP for the [USAII Global AI Hackathon 2026](https://www.usaii.org/) High School Track: *AI for Everyday Good, Environment Brief — Make Climate Action Local & Real.*
+Built for the USAII Global AI Hackathon 2026, the project combines deterministic scoring, public environmental data, interactive mapping, and AI-generated explanations to help students and school administrators make informed sustainability decisions.
 
-Instead of generic advice like “bike more” or “compost more,” Greenlight asks a sharper question:
+Instead of giving generic advice like *"bike more"* or *"recycle more,"* Greenlight answers a more practical question:
 
-> **If we make this sustainability improvement, what happens?**
-
-The app maps local barriers on a real place, ranks practical fixes students can verify, **simulates projected impact instantly**, and uses AI only to explain what the deterministic engine already calculated.
+> **What should we improve first, and what impact will that have?**
 
 ---
 
-## What’s new
+## Features
 
-This update turns Greenlight from a barrier finder into a full **decision-support workflow**:
-
-| Step | What you get |
-|------|----------------|
-| **Map the place** | Search schools, corridors, parks, or custom locations with offline-friendly local data |
-| **Rank barriers** | Deterministic 0–100 scoring across access, safety, importance, equity, and feasibility |
-| **Simulate improvements** | Pick interventions and see projected score, emissions, waste, and adoption change in real time |
-| **Prioritize fixes** | AI impact ranking orders options by environment, cost, difficulty, behavior, and confidence |
-| **Explain with AI** | LLM narrates scores and scenarios in plain language — it never generates numbers |
+- Interactive map for exploring schools and surrounding infrastructure
+- Barrier scoring based on accessibility, safety, equity, importance, and feasibility
+- Scenario simulator for testing sustainability improvements before implementation
+- AI-powered explanations of scores and projected outcomes
+- Ranked intervention recommendations based on impact, cost, difficulty, and confidence
+- Built-in Responsible AI guardrails and human verification workflow
 
 ---
 
-## Quick start
+## Getting Started
+
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open **http://localhost:3000**.
 
-The app works fully offline with bundled demo data. Live AI is optional.
+The application works out of the box using bundled synthetic data. AI functionality is optional.
 
-### Optional: enable live AI
+### Enable AI
 
-Create `.env.local` in the project root:
+Create a `.env.local` file:
 
 ```bash
 HACKCLUB_AI_API_KEY=your_key_here
 ```
 
-Never put the key in frontend code. Only `app/api/recommendation/route.ts` reads it server-side. `.env.local` is gitignored.
+The API key is only used server-side through the recommendation API route.
 
 ---
 
-## How to use it
+## How It Works
 
-1. **Pick a location** — use the search bar or choose from the local Bay Area high-school index.
-2. **Choose a climate goal** — school commute, biking, composting, transit, and more.
-3. **Open the scenario simulator** — select one or more improvements (bike racks, crosswalks, compost bins, etc.).
-4. **Review projected impact** — compare baseline vs. projected barrier score, emissions, waste, and adoption.
-5. **Check AI impact ranking** — see which fixes rank highest for this barrier.
-6. **Run full AI analysis** — get explanations, recommended fixes, verification steps, and a decision-maker message.
+Greenlight separates numerical calculations from AI-generated explanations.
 
-Navigation shortcuts in the header: **Simulator**, **Map**, **AI**, **Guardrails**, **Data**.
+```text
+Location Data
+      ↓
+Deterministic Scoring Engine
+      ↓
+Scenario Simulation
+      ↓
+Intervention Ranking
+      ↓
+AI Explanation Layer
+      ↓
+Interactive Dashboard
+```
+
+All scores, rankings, and projections are generated locally using deterministic calculations.
+
+The language model never generates numerical values—it only explains results and produces readable recommendations.
 
 ---
 
-## Architecture
+## Core Components
 
-Greenlight follows a strict separation of concerns:
+### Barrier Scoring
 
-```
-Local data + scoring engine  →  all numbers (scores, projections, rankings)
-         ↓
-   /api/recommendation       →  prose only (explanations, narration)
-         ↓
-            UI               →  maps, panels, checklists
-```
+Each location is evaluated using five weighted categories:
 
-### Deterministic engine (`lib/`)
+- Accessibility
+- Safety
+- Environmental Importance
+- Equity
+- Feasibility
 
-| Module | Role |
-|--------|------|
-| `scoring.ts` | Barrier scores (0–100) from five weighted categories |
-| `interventions.ts` | Catalog of simulatable improvements with synthetic effect coefficients |
-| `simulation.ts` | `projectScenario()` — instant what-if projections per barrier |
-| `ranking.ts` | `rankInterventions()` — deterministic impact prioritization |
-| `explain.ts` | Decomposes scores and projection deltas into readable factors |
+### Scenario Simulator
 
-### Simulatable interventions
+Users can simulate interventions such as:
 
-- Protected bike arrival box
-- Secure bike racks
-- Marked crosswalk / crossing aid
+- Bike racks
+- Protected crossings
 - Compost bins
-- Recycling access
+- Recycling stations
 - Bus stop relocation
-- Shaded walkway
+- Shaded walkways
 
-All effect numbers are **synthetic and deterministic** for this MVP — they power local what-if modeling, not measured field data.
+The application immediately recalculates projected scores, environmental impact, and expected behavior change.
 
-### AI route tasks
+### AI Recommendations
 
-`POST /api/recommendation` accepts a `task` discriminator:
-
-| Task | Purpose |
-|------|---------|
-| `explanation` | Full barrier analysis, fixes, and verification checklist |
-| `factors` | Root-cause factor narration |
-| `scenario` | Plain-language explanation of a simulated improvement |
-
-If the API key is missing or a request fails, structured mock output keeps the UI usable.
-
-**Live endpoint:** `https://ai.hackclub.com/proxy/v1/chat/completions`  
-**Primary model:** `google/gemini-3.5-flash` (with free-model fallbacks)
+Greenlight ranks interventions using deterministic outputs and provides plain-language explanations, implementation guidance, and verification steps.
 
 ---
 
-## Scoring categories
+## Tech Stack
 
-Every barrier score is computed locally — never by the LLM:
-
-| Category | Max points |
-|----------|------------|
-| Access gap | 25 |
-| Safety / friction | 25 |
-| Action importance | 20 |
-| Equity / access concern | 15 |
-| Fix feasibility | 15 |
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- React Leaflet
+- Lucide React
+- Hack Club AI Proxy (Gemini)
 
 ---
 
-## Tech stack
+## Project Structure
 
-- **Framework:** Next.js 16 (App Router), React 19, TypeScript
-- **Styling:** Tailwind CSS with CSS variable themes (light / dark / system)
-- **Maps:** Leaflet + React Leaflet
-- **Icons:** Lucide React
-- **AI:** Hack Club AI proxy (server route only)
-
----
-
-## Project structure
-
-```
-app/                  Next.js pages, layout, global styles, API routes
-components/           UI panels, map, navbar, simulator, AI explanation
-components/map/       Client-only Leaflet map
-lib/                  Scoring, simulation, ranking, interventions, types
-data/                 Synthetic demo JSON, GeoJSON, Bay Area school index
+```text
+app/
+components/
+components/map/
+lib/
+data/
 ```
 
-Key UI components:
-
-- `InterventionSelector` — pick improvements to simulate
-- `ProjectedImpactPanel` — before/after metrics and scenario narration
-- `InterventionRankingPanel` — ranked fix prioritization
-- `AIExplanationPanel` — deterministic score breakdown + AI summary
-- `VerificationChecklist` — student verification steps
+Most application logic lives inside `lib/`, including scoring, simulation, intervention ranking, and explanation utilities.
 
 ---
 
-## Showcase / demo mode
+## Data
 
-Greenlight includes a recording-ready flow for hackathon walkthroughs.
+Greenlight is designed to work with public, synthetic, or user-provided data.
 
-**Activate showcase mode:**
+Current sources include:
 
-1. Open [http://localhost:3000/?showcase=greenlight](http://localhost:3000/?showcase=greenlight)
-2. Press **Shift + G + L**
-3. Click the Greenlight logo five times quickly
+- OpenStreetMap
+- GeoJSON datasets
+- Synthetic environmental data
+- Bay Area school index
+- Census and EPA-inspired contextual datasets
 
-**Developer settings:** Press **Shift + D + E + V**
-
-Before recording:
-
-1. Confirm the bottom-left **Ready** badge appears
-2. Set AI Mode to **Reliable** for stability
-3. Turn on **Presentation Mode**
-4. Use **Copy Showcase URL** from developer settings if needed
-
-Developer settings include showcase toggle, AI mode, theme, presentation mode, API status, and reset — never the raw API key.
-
----
-
-## Data sources
-
-Greenlight is designed for public, open, synthetic, or user-entered data:
-
-- OpenStreetMap / Overpass API (capable)
-- Census TIGER / ACS-style context
-- EPA EJScreen-style context
-- California Department of Education school sites (Bay Area high-school search index)
-- Local JSON and GeoJSON fallbacks
-
-The MVP ships synthetic local files plus a generated school index so the experience stays reliable when live services are unavailable.
+Synthetic data is included so the application remains fully functional without external services.
 
 ---
 
 ## Responsible AI
 
-Greenlight separates **observed evidence** from **AI inference**:
+Greenlight keeps calculations and AI reasoning separate.
 
-- Does not invent infrastructure, safety conditions, demographic claims, or legal conclusions
-- Uses demographic/environmental context only to prioritize fairness — not to stereotype
-- Requires human verification before treating any output as final
-- Students should not inspect unsafe roads alone
-
-Every recommendation includes uncertainty, a verification checklist, and a message students can send to a school admin or city official. The app recommends decisions; it does not make final infrastructure judgments.
+- Numerical results are deterministic.
+- AI explains existing results rather than generating them.
+- Confidence and assumptions are displayed whenever appropriate.
+- Recommendations are intended to support decision making, not replace human judgment.
 
 ---
 
 ## Development
 
 ```bash
-npm install          # install dependencies
-npm run dev          # start dev server
-npm run build        # production build
-npm run start        # run production server
-npm run lint         # ESLint
-npm run typecheck    # TypeScript check
+npm install
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run typecheck
 ```
-
-No automated test suite is defined yet.
-
----
-
-## Decision impact
-
-**Before:** Students get generic climate advice with no local context.
-
-**After:** Students see the exact barrier blocking action, evidence behind it, simulated impact of specific fixes, confidence levels, and realistic next steps they can verify on the ground.
 
 ---
 
 ## License
 
-Hackathon MVP — see repository owner for usage terms.
+Created for the USAII Global AI Hackathon 2026.
