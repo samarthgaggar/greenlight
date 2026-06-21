@@ -1,23 +1,25 @@
 # Greenlight
 
-Greenlight is an AI-powered decision support tool that helps schools identify barriers to sustainable behavior and evaluate which improvements will have the greatest local impact.
+> AI-powered decision support for sustainable transportation and climate action in Bay Area high schools.
 
-Built for the USAII Global AI Hackathon 2026, the project combines deterministic scoring, public environmental data, interactive mapping, and AI-generated explanations to help students and school administrators make informed sustainability decisions.
+Greenlight helps Bay Area students, schools, and student organizations identify barriers to sustainable behavior and evaluate which improvements will have the greatest local impact.
+
+Built for the **USAII Global AI Hackathon 2026**, Greenlight combines deterministic analysis, public infrastructure data, interactive mapping, and AI-generated explanations to help schools make informed sustainability decisions.
 
 Instead of giving generic advice like *"bike more"* or *"recycle more,"* Greenlight answers a more practical question:
 
-> **What should we improve first, and what impact will that have?**
+> **What changes should our school make first, and what impact will they actually have?**
 
 ---
 
 ## Features
 
-- Interactive map for exploring schools and surrounding infrastructure
-- Barrier scoring based on accessibility, safety, equity, importance, and feasibility
-- Scenario simulator for testing sustainability improvements before implementation
-- AI-powered explanations of scores and projected outcomes
-- Ranked intervention recommendations based on impact, cost, difficulty, and confidence
-- Built-in Responsible AI guardrails and human verification workflow
+- Interactive map of Bay Area high schools and surrounding infrastructure
+- Barrier analysis based on accessibility, safety, equity, importance, and feasibility
+- AI-powered scenario simulator for testing sustainability improvements before implementation
+- Ranked intervention recommendations based on projected impact, cost, difficulty, and confidence
+- Plain-language AI explanations backed by deterministic calculations
+- Responsible AI guardrails with built-in human verification workflow
 
 ---
 
@@ -37,7 +39,7 @@ npm run dev
 
 Open **http://localhost:3000**.
 
-The application works out of the box using bundled synthetic data. AI functionality is optional.
+Greenlight works out of the box using bundled synthetic data. Live AI functionality is optional.
 
 ### Enable AI
 
@@ -47,31 +49,36 @@ Create a `.env.local` file:
 HACKCLUB_AI_API_KEY=your_key_here
 ```
 
-The API key is only used server-side through the recommendation API route.
+The API key is only accessed server-side through the recommendation API route.
 
 ---
 
 ## How It Works
 
-Greenlight separates numerical calculations from AI-generated explanations.
+Greenlight separates calculations from AI explanations.
 
 ```text
-Location Data
-      ↓
-Deterministic Scoring Engine
-      ↓
+Location & Infrastructure Data
+              │
+              ▼
+Deterministic Barrier Scoring
+              │
+              ▼
 Scenario Simulation
-      ↓
-Intervention Ranking
-      ↓
+              │
+              ▼
+Impact Ranking Engine
+              │
+              ▼
 AI Explanation Layer
-      ↓
+              │
+              ▼
 Interactive Dashboard
 ```
 
-All scores, rankings, and projections are generated locally using deterministic calculations.
+All scores, projections, rankings, and simulations are calculated locally using deterministic logic.
 
-The language model never generates numerical values—it only explains results and produces readable recommendations.
+The language model never generates numerical values. It explains results, summarizes findings, and provides actionable recommendations in plain language.
 
 ---
 
@@ -79,7 +86,7 @@ The language model never generates numerical values—it only explains results a
 
 ### Barrier Scoring
 
-Each location is evaluated using five weighted categories:
+Every location is evaluated across five weighted categories:
 
 - Accessibility
 - Safety
@@ -89,62 +96,67 @@ Each location is evaluated using five weighted categories:
 
 ### Scenario Simulator
 
-Users can simulate interventions such as:
+Users can simulate sustainability improvements including:
 
-- Bike racks
-- Protected crossings
+- Secure bike racks
+- Protected crosswalks
 - Compost bins
 - Recycling stations
 - Bus stop relocation
 - Shaded walkways
 
-The application immediately recalculates projected scores, environmental impact, and expected behavior change.
+Each simulation instantly updates projected barrier scores, expected behavior change, and environmental impact.
 
 ### AI Recommendations
 
-Greenlight ranks interventions using deterministic outputs and provides plain-language explanations, implementation guidance, and verification steps.
+Greenlight prioritizes interventions using deterministic calculations and provides:
+
+- Plain-language explanations
+- Ranked recommendations
+- Implementation guidance
+- Verification steps
+- Confidence estimates
 
 ---
 
 ## Tech Stack
 
-- Next.js 16
-- React 19
-- TypeScript
-- Tailwind CSS
-- React Leaflet
-- Lucide React
-- Hack Club AI Proxy (Gemini)
+- **Framework:** Next.js 16
+- **Frontend:** React 19 + TypeScript
+- **Styling:** Tailwind CSS
+- **Mapping:** React Leaflet + Leaflet
+- **Icons:** Lucide React
+- **AI:** Hack Club AI Proxy (Gemini)
 
 ---
 
 ## Project Structure
 
 ```text
-app/
-components/
-components/map/
-lib/
-data/
+app/                  Application pages, layouts, API routes
+components/           Reusable UI components
+components/map/       Interactive Leaflet map
+lib/                  Scoring, simulation, ranking, utilities
+data/                 Bay Area datasets and synthetic demo data
 ```
 
-Most application logic lives inside `lib/`, including scoring, simulation, intervention ranking, and explanation utilities.
+Most application logic lives inside `lib/`, including the deterministic scoring engine, scenario simulation, intervention ranking, and explanation utilities.
 
 ---
 
 ## Data
 
-Greenlight is designed to work with public, synthetic, or user-provided data.
+Greenlight is designed specifically for **Bay Area high schools** and uses a combination of public, synthetic, and user-provided data.
 
-Current sources include:
+Current data sources include:
 
-- OpenStreetMap
-- GeoJSON datasets
-- Synthetic environmental data
-- Bay Area school index
-- Census and EPA-inspired contextual datasets
+- Bay Area high school locations
+- OpenStreetMap infrastructure data
+- GeoJSON boundary data
+- Synthetic transportation and environmental datasets
+- Census and EPA-inspired contextual data
 
-Synthetic data is included so the application remains fully functional without external services.
+Bundled datasets ensure the application remains fully functional even when external services are unavailable.
 
 ---
 
@@ -152,10 +164,12 @@ Synthetic data is included so the application remains fully functional without e
 
 Greenlight keeps calculations and AI reasoning separate.
 
-- Numerical results are deterministic.
-- AI explains existing results rather than generating them.
-- Confidence and assumptions are displayed whenever appropriate.
-- Recommendations are intended to support decision making, not replace human judgment.
+- Numerical results are generated deterministically.
+- AI explains existing results rather than creating them.
+- Confidence levels and assumptions are surfaced whenever appropriate.
+- Recommendations are intended to support decision-making, not replace human judgment.
+
+Students, teachers, and school administrators are encouraged to verify recommendations before acting on them.
 
 ---
 
@@ -174,4 +188,4 @@ npm run typecheck
 
 ## License
 
-Created for the USAII Global AI Hackathon 2026.
+Created for the **USAII Global AI Hackathon 2026**.
