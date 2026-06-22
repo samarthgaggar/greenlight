@@ -4,7 +4,7 @@
 
 Greenlight helps Bay Area students, schools, and student organizations identify barriers to sustainable behavior and evaluate which improvements will have the greatest local impact.
 
-Built for the **USAII Global AI Hackathon 2026**, Greenlight combines deterministic analysis, public infrastructure data, interactive mapping, and AI-generated explanations to help schools make informed sustainability decisions.
+Greenlight combines deterministic analysis, public infrastructure data, interactive mapping, and AI-generated explanations to help schools make informed sustainability decisions.
 
 Instead of giving generic advice like *"bike more"* or *"recycle more,"* Greenlight answers a more practical question:
 
@@ -185,7 +185,3 @@ npm run typecheck
 ```
 
 ---
-
-## License
-
-Created for the **USAII Global AI Hackathon 2026**.
